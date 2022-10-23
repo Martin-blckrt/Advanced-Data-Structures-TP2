@@ -1,6 +1,8 @@
 # Manually added
 .vs/
+x64/
 *.vcxproj.*
+*.sln
 
 # Prerequisites
 *.d
@@ -35,3 +37,7 @@
 *.out
 *.app
 *.vcxproj
+*.sln
+*.sln
+*.sln
+Structure-Dev2.sln
