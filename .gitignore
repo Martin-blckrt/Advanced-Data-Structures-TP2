@@ -1,8 +1,12 @@
 # Manually added
 .vs/
 x64/
-*.vcxproj.*
+resources/
+*.vcxproj
 *.sln
+Structure-Dev2.sln
+*.filters
+*.user
 
 # Prerequisites
 *.d
@@ -36,8 +40,3 @@ x64/
 *.exe
 *.out
 *.app
-*.vcxproj
-*.sln
-*.sln
-*.sln
-Structure-Dev2.sln
