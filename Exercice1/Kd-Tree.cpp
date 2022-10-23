@@ -27,6 +27,15 @@ public:
 class KdTree {
     public:
 
+    inline explicit KdTree();
+	inline ~KdTree();
+
+    inline void ajouterNoeud(KdNode* noeud);
+    inline void supprimerNoeud(KdNode* noeud);
+    inline KdNode* chercherNoeud(Point* point);
+    inline void plusProcheVoisin();
+
     private:
+        KdNode* racine;
 
 };
