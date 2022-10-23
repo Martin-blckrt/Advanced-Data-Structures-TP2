@@ -19,12 +19,13 @@ public:
     Point* p;
 	KdNode* gauche;
     KdNode* droit;
+    int hauteur;
 
 	KdNode(Point* point,KdNode* nodeG = nullptr,KdNode* nodeD = nullptr) : p(point), gauche(nodeG),droit(nodeD) {}
 
 };
 
-class KdTree {
+class KdTree { // comparaison commence en X puis Y,X,Y ect...
     public:
 
     inline explicit KdTree();
@@ -36,6 +37,37 @@ class KdTree {
     inline void plusProcheVoisin();
 
     private:
-        KdNode* racine;
+        
+    KdNode* racine;
+    inline void _detruire(KdNode*);
+    inline void _ajouterNoeud(KdNode*,KdNode*);
 
 };
+
+KdTree::KdTree(){
+    racine = nullptr;
+}
+
+KdTree::~KdTree(){
+    _detruire(racine);
+}
+
+void KdTree::_detruire(KdNode* elem){
+    if(elem!=nullptr){
+        _detruire(elem->droit);
+        _detruire(elem->droit);
+        delete elem;
+    }
+}
+
+void KdTree::ajouterNoeud(KdNode* node){
+    _ajouterNoeud(racine,node);
+}
+
+void KdTree::_ajouterNoeud(KdNode* nodeCompa,KdNode* nodeAjout){
+    
+}
+
+void KdTree::supprimerNoeud(KdNode* node){
+    
+}
