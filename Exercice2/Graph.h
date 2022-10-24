@@ -5,8 +5,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
-#include <cstdlib>
-
+#include <chrono>
 #include "GraphElem.h"
 
 class Graph
@@ -45,7 +44,6 @@ Graph::Graph(std::string zone) {
 	std::string node_str = "resources/" + file_str + ".nodes.txt";
 	std::string edge_str = "resources/" + file_str + ".edges.txt";
 
-
 	std::ifstream nodefile(node_str);
 	std::ifstream edgefile(edge_str);
 
@@ -53,15 +51,15 @@ Graph::Graph(std::string zone) {
 	readFileContent(*this, nodefile, true);
 
 	std::cout << "Reading " << edge_str << std::endl;
-	readFileContent(*this, edgefile, false);	
-
-	std::cout << "Graph completed" << std::endl;
+	readFileContent(*this, edgefile, false);
+	
+	std::cout << "Graph completed\n" << std::endl;
 }
 
 void readFileContent(Graph& gr, std::ifstream& file, bool isNode) {
 
-	std::string line;	// file content str
-	
+	std::string line;	// line content
+
 	if (file.is_open()) {
 
 		while (std::getline(file, line))
@@ -70,16 +68,19 @@ void readFileContent(Graph& gr, std::ifstream& file, bool isNode) {
 			int nb1, nb2; std::string line_url;	// pattern variables
 
 			if (isNode) {
+
 				ss >> nb1 >> nb2 >> line_url;  // pattern declaration
-				if (!ss) { continue; }	// if pattern doesnt match, ignore line
-				
-				gr.nodes.push_back(Node(nb1, nb2, line_url));
+
+				// if it matches, register data
+				if (ss)
+					gr.nodes.push_back(Node(nb1, nb2, line_url)); 	
 			}
 			else {
-				ss >> nb1 >> nb2;
-				if (!ss) { continue; }	// if pattern doesnt match, ignore line
 
-				gr.edges.push_back(Edge(nb1, nb2));
+				ss >> nb1 >> nb2;
+
+				if (ss)
+					gr.edges.push_back(Edge(nb1, nb2));
 			}
 		}
 			
