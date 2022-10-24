@@ -1,30 +1,31 @@
 #include <iostream>
+#include <utility>
 
 #include "Graph.h"
 
 using namespace std;
 
-string getInput();
+pair<string, GroupStrategy> getInput();
 
 int main()
 {
 	cout << "DEVOIR 2 - Exercice 2" << endl;
 
-    // Choose 'eu' or 'in' 
-    string ans = getInput();
+    // Choose 'eu' or 'in' and group strategy 
+    pair<string, GroupStrategy> choices = getInput();
 
-    auto* g = new Graph(ans);
+    auto* g = new Graph(choices.first, choices.second);
 
 	return 0;
 }
 
-string getInput() {
+pair<string, GroupStrategy> getInput() {
 
 	int res;
-	string ans;
+	pair<string, GroupStrategy> ans;
 	
 	cout << endl << "Choisir une zone" << endl;
-	cout << "1: Europe - 2: India" << endl << endl;
+	cout << "1: Europe - 2: India" << endl;
 	
 	while (!(cin >> res) || (res != 1 && res != 2)) {
 
@@ -34,12 +35,42 @@ string getInput() {
 	}
 	cout << endl;
 
-	// make switch statement if we add more zones
-	if (res == 1)
+	switch (res)
 	{
-		ans = "eu";
-	} else {
-		ans = "in";
+	case 1:
+		ans.first = "eu";
+		break;
+	case 2:
+		ans.first = "in";
+		break;
+	default:
+		break;
+	}
+
+	cout << "Choisir une strategie de regroupement" << endl;
+	cout << "1: Par page - 2: Par domaine - 3: Par hote" << endl;
+
+	while (!(cin >> res) || (res != 1 && res != 2 && res != 3)) {
+
+		cin.clear();
+		cin.ignore(1000, '\n');
+		cout << "Invalide car different de 1, 2 ou 3" << endl << "Recommencez: ";
+	}
+	cout << endl;
+
+	switch (res)
+	{
+	case 1:
+		ans.second = GroupStrategy::page;
+		break;
+	case 2:
+		ans.second = GroupStrategy::domain;
+		break;
+	case 3:
+		ans.second = GroupStrategy::host;
+		break;
+	default:
+		break;
 	}
 
 	return ans;
