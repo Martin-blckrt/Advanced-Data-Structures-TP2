@@ -11,29 +11,51 @@
 class Graph
 {
 public:
-	Graph(std::string);
+
+	GroupStrategy strat;
+
+	Graph(std::string, GroupStrategy);
 
 	friend void readFileContent(Graph& gr, std::ifstream&, bool);
 
 	std::vector<Node> getNodes() { return nodes; };
 	std::vector<Edge> getEdges() { return edges; };
-	std::vector<std::vector<Node>> getHyper() { return hyperedges; };
+	std::vector<HyperEdge> getHyper() { return hyperedges; };
 
-	void createHyper(std::vector<Node>);
+	void createHyperEdges();
 
 
 private:
 	std::vector<Node> nodes;
 	std::vector<Edge> edges;
 
-	std::vector<std::vector<Node>> hyperedges;
+	std::vector<HyperEdge> hyperedges;
 };
 
-Graph::Graph(std::string zone) {
+Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 
 	std::string file_str;	// file name str
 
 	std::cout << "Graph initialisation\n" << std::endl;
+
+	std::string strat_str = "";
+	switch (strategy)
+	{
+	case GroupStrategy::page:
+		strat_str = "By Page";
+		break;
+	case GroupStrategy::domain:
+		strat_str = "By Domain";
+		break;
+	case GroupStrategy::host:
+		strat_str = "By Host";
+		break;
+	default:
+		break;
+	}
+
+	std::cout << "GroupStrategy: " + strat_str << std::endl;
+	strat = strategy;
 
 	if (zone == "in") {
 
@@ -94,7 +116,15 @@ void readFileContent(Graph& gr, std::ifstream& file, bool isNode) {
 	}
 }
 
-void Graph::createHyper(std::vector<Node> node_list) {
+void Graph::createHyperEdges() {
 
-	hyperedges.push_back(node_list);
+	if (strat == GroupStrategy::page)
+	{
+
+	} else if(strat == GroupStrategy::domain) {
+	
+	}
+	else if (strat == GroupStrategy::host) {
+
+	}
 }

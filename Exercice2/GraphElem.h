@@ -22,6 +22,23 @@ private:
 	int dest;
 };
 
+class HyperEdge
+{
+public:
+
+	HyperEdge(){};
+	HyperEdge(std::vector<Node> node_set) : set(node_set){};
+
+	bool setEmpty() { return set.empty(); };
+
+	void setSet(std::vector<Node> node_set) { set = node_set; };
+	std::vector<Node> getSet() { return set; };
+	
+
+private:
+	std::vector<Node> set;
+};
+
 class Node
 {
 public:
