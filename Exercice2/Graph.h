@@ -22,15 +22,17 @@ public:
 
 	std::vector<Node> getNodes() { return nodes; };
 	std::vector<Edge> getEdges() { return edges; };
-	std::vector<HyperEdge> getHyper() { return hyperedges; };
+	std::vector<HyperSet> getHyperSets() { return hypersets; };
+	std::vector<HyperEdge> getHyperEdges() { return hyperedges; };
 
+	void createHyperSets();
 	void createHyperEdges();
-
 
 private:
 	std::vector<Node> nodes;
 	std::vector<Edge> edges;
 
+	std::vector<HyperSet> hypersets;
 	std::vector<HyperEdge> hyperedges;
 };
 
@@ -83,7 +85,10 @@ Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 	std::cout << "Reading " << edge_str << std::endl;
 	readFileContent(*this, edgefile, false);
 
-	std::cout << "Creating hyper-edges" << std::endl;
+	std::cout << "Creating hyper sets" << std::endl;
+	createHyperSets();
+
+	std::cout << "Creating hyper edges" << std::endl;
 	createHyperEdges();
 	
 	std::cout << "Graph completed\n" << std::endl;
@@ -122,65 +127,78 @@ void readFileContent(Graph& gr, std::ifstream& file, bool isNode) {
 	}
 }
 
-void Graph::createHyperEdges() {
+void Graph::createHyperSets() {
+
+	std::string content;
+	std::map<std::string, std::vector<Node>> by_url_list;
+	std::regex urlRe("^.*://([^/?:]+)/?.*$");
 
 	if (strat == GroupStrategy::page)
 	{
-		hyperedges.reserve(nodes.size());
+		hypersets.reserve(nodes.size());
 
 		for (auto& page : nodes) {
 
-			HyperEdge h({ page });
-			hyperedges.push_back(h);
+			HyperSet h({ page });
+			hypersets.push_back(h);
 		}
 
 	} else if(strat == GroupStrategy::domain) {
 
-		std::string domain_name;
-		std::map<std::string, std::vector<Node>> by_url_list;
-
 		for (auto& page : nodes) {
 
 			std::string url = page.getUrl();
 
-			std::regex urlRe("^.*://([^/?:]+)/?.*$");
-			domain_name = std::regex_replace(url, urlRe, "$1");
+			content = std::regex_replace(url, urlRe, "$1");
 
-			size_t pos = domain_name.find('.');
-			domain_name.erase(0, pos + 1);
+			size_t pos = content.find('.');
+			content.erase(0, pos + 1);
 
-			by_url_list[domain_name].push_back(page);
+			by_url_list[content].push_back(page);
 		}
 
-		hyperedges.reserve(by_url_list.size());
+		hypersets.reserve(by_url_list.size());
 
 		for (auto& url_list : by_url_list)
 		{
-			HyperEdge h(url_list.second);
-			hyperedges.push_back(h);
+			HyperSet h(url_list.second);
+			hypersets.push_back(h);
 		}
 	}
 	else if (strat == GroupStrategy::host) {
 
-		std::string host_name;
-		std::map<std::string, std::vector<Node>> by_url_list;
-
 		for (auto& page : nodes) {
 
 			std::string url = page.getUrl();
 
-			std::regex urlRe("^.*://([^/?:]+)/?.*$");
-			host_name = std::regex_replace(url, urlRe, "$1");
+			content = std::regex_replace(url, urlRe, "$1");
 
-			by_url_list[host_name].push_back(page);
+			by_url_list[content].push_back(page);
 		}
 
-		hyperedges.reserve(by_url_list.size());
+		hypersets.reserve(by_url_list.size());
 
 		for (auto& url_list : by_url_list)
 		{
-			HyperEdge h(url_list.second);
-			hyperedges.push_back(h);
+			HyperSet h(url_list.second);
+			hypersets.push_back(h);
+		}
+	}
+
+	std::cout << "Done" << std::endl;
+}
+
+void Graph::createHyperEdges() {
+
+	std::map<int, int> destinations; // <index, destination>
+
+	if (!hypersets.empty())
+	{
+		for (auto& hyperset : hypersets) {
+			for (auto& node : hyperset.set)
+			{
+				destinations[node.]
+			}
 		}
 	}
 
