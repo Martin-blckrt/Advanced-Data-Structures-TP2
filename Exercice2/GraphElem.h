@@ -3,8 +3,10 @@
 #include <iostream>
 #include <string>
 
+// Utility header
+
 // Granularité
-enum GroupStrategy { page, domain, host };
+enum class GroupStrategy { page, domain, host };
 
 class Edge 
 {
