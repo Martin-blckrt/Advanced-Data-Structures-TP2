@@ -60,7 +60,7 @@ public:
 			set.push_back(node);
 	};
 
-	std::vector<Node> getSet() { return set; };
+	std::vector<Node>& getSet() { return set; };
 	
 private:
 	std::vector<Node> set;
@@ -70,12 +70,15 @@ class HyperEdge
 {
 public:
 
-	HyperEdge(HyperSet src, Node dst) : srcSet(src), destNode(dst) {};
+	HyperEdge(HyperSet src, Node dst, int stgth = 0) :
+		srcSet(src), destNode(dst), strength(stgth) {};
 
-	HyperSet getSource() { return srcSet; };
+	HyperSet& getSource() { return srcSet; };
 	Node getDestination() { return destNode; };
 
 private:
 	HyperSet srcSet;
 	Node destNode;
+
+	int strength;
 };

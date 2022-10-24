@@ -7,6 +7,7 @@
 #include <sstream>
 #include <regex>
 #include <map>
+#include <utility>
 
 #include "GraphElem.h"
 
@@ -190,15 +191,37 @@ void Graph::createHyperSets() {
 
 void Graph::createHyperEdges() {
 
-	std::map<int, int> destinations; // <index, destination>
+	// < pair<id source, noeud>, pair<set concerné, nb d'occurence> >
 
+	std::map<Node, HyperSet> targets;
+	
 	if (!hypersets.empty())
 	{
 		for (auto& hyperset : hypersets) {
-			for (auto& node : hyperset.set)
+			
+			auto current_set = hyperset.getSet();
+
+			for (auto& node : current_set)
 			{
-				destinations[node.]
+				for (auto& edge : edges) {
+
+					if (edge.getSource() == node.getId()){
+						
+						targets[node] = hyperset;
+					}
+				}
 			}
+
+			hyperedges.reserve(targets.size());
+
+			for (auto& targ : targets)
+			{
+				//TODO: fix strength
+				HyperEdge he(targ.second, targ.first, 0);
+				hyperedges.push_back(he);
+			}
+
+			targets.clear();
 		}
 	}
 
