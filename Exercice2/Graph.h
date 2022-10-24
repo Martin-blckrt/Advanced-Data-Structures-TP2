@@ -124,8 +124,6 @@ void readFileContent(Graph& gr, std::ifstream& file, bool isNode) {
 
 void Graph::createHyperEdges() {
 
-	
-
 	if (strat == GroupStrategy::page)
 	{
 		hyperedges.reserve(nodes.size());
@@ -138,7 +136,12 @@ void Graph::createHyperEdges() {
 
 	} else if(strat == GroupStrategy::domain) {
 
-		std::string domain_name;
+		
+	
+	}
+	else if (strat == GroupStrategy::host) {
+
+		std::string host_name;
 		std::map<std::string, std::vector<Node>> by_url_list;
 
 		for (auto& page : nodes) {
@@ -146,9 +149,9 @@ void Graph::createHyperEdges() {
 			std::string url = page.getUrl();
 
 			std::regex urlRe("^.*://([^/?:]+)/?.*$");
-			domain_name = std::regex_replace(url, urlRe, "$1");
+			host_name = std::regex_replace(url, urlRe, "$1");
 
-			by_url_list[domain_name].push_back(page);
+			by_url_list[host_name].push_back(page);
 		}
 
 		hyperedges.reserve(by_url_list.size());
@@ -158,10 +161,6 @@ void Graph::createHyperEdges() {
 			HyperEdge h(url_list.second);
 			hyperedges.push_back(h);
 		}
-	
-	}
-	else if (strat == GroupStrategy::host) {
-
 	}
 
 	std::cout << "Done" << std::endl;
