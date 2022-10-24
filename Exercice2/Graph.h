@@ -17,11 +17,16 @@ public:
 
 	std::vector<Node> getNodes() { return nodes; };
 	std::vector<Edge> getEdges() { return edges; };
+	std::vector<std::vector<Node>> getHyper() { return hyperedges; };
+
+	void createHyper(std::vector<Node>);
 
 
 private:
 	std::vector<Node> nodes;
 	std::vector<Edge> edges;
+
+	std::vector<std::vector<Node>> hyperedges;
 };
 
 Graph::Graph(std::string zone) {
@@ -89,3 +94,7 @@ void readFileContent(Graph& gr, std::ifstream& file, bool isNode) {
 	}
 }
 
+void Graph::createHyper(std::vector<Node> node_list) {
+
+	hyperedges.push_back(node_list);
+}

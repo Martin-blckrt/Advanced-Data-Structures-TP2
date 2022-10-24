@@ -3,6 +3,9 @@
 #include <iostream>
 #include <string>
 
+// Granularité
+enum GroupStrategy { page, domain, host };
+
 class Edge 
 {
 public: 
