@@ -136,8 +136,29 @@ void Graph::createHyperEdges() {
 
 	} else if(strat == GroupStrategy::domain) {
 
-		
-	
+		std::string domain_name;
+		std::map<std::string, std::vector<Node>> by_url_list;
+
+		for (auto& page : nodes) {
+
+			std::string url = page.getUrl();
+
+			std::regex urlRe("^.*://([^/?:]+)/?.*$");
+			domain_name = std::regex_replace(url, urlRe, "$1");
+
+			size_t pos = domain_name.find('.');
+			domain_name.erase(0, pos + 1);
+
+			by_url_list[domain_name].push_back(page);
+		}
+
+		hyperedges.reserve(by_url_list.size());
+
+		for (auto& url_list : by_url_list)
+		{
+			HyperEdge h(url_list.second);
+			hyperedges.push_back(h);
+		}
 	}
 	else if (strat == GroupStrategy::host) {
 
