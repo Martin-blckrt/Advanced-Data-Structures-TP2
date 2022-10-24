@@ -3,6 +3,29 @@
 #include <iostream>
 #include <string>
 
+// Utility header
+
+// Granularité
+enum class GroupStrategy { page, domain, host };
+
+class Node
+{
+public:
+
+	Node(int id, int dg, std::string lk) :node_id(id), out_degree(dg), url(lk) {};
+
+	int getId() { return node_id; };
+	int getDegree() { return out_degree; };
+	std::string getUrl() { return url; };
+
+private:
+	int node_id;
+	int out_degree;
+
+	std::string url;
+
+};
+
 class Edge 
 {
 public: 
@@ -17,21 +40,20 @@ private:
 	int dest;
 };
 
-class Node
+class HyperEdge
 {
 public:
 
-	Node(int id, int dg, std::string lk):node_id(id), out_degree(dg), url(lk) {};
+	HyperEdge(){};
+	HyperEdge(std::vector<Node> node_set) : set(node_set){};
 
-	int getId() { return node_id; };
-	int getDegree() { return out_degree; };
-	std::string getUrl() { return url; };
+	bool setEmpty() { return set.empty(); };
+
+	void addToSet(Node node) { set.push_back(node); };
+	std::vector<Node> getSet() { return set; };
+	
 
 private:
-	int node_id;
-	int out_degree;
-
-	std::string url;
-
+	std::vector<Node> set;
 };
 

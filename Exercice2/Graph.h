@@ -11,24 +11,51 @@
 class Graph
 {
 public:
-	Graph(std::string);
+
+	GroupStrategy strat;
+
+	Graph(std::string, GroupStrategy);
 
 	friend void readFileContent(Graph& gr, std::ifstream&, bool);
 
 	std::vector<Node> getNodes() { return nodes; };
 	std::vector<Edge> getEdges() { return edges; };
+	std::vector<HyperEdge> getHyper() { return hyperedges; };
+
+	void createHyperEdges();
 
 
 private:
 	std::vector<Node> nodes;
 	std::vector<Edge> edges;
+
+	std::vector<HyperEdge> hyperedges;
 };
 
-Graph::Graph(std::string zone) {
+Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 
 	std::string file_str;	// file name str
 
-	std::cout << "Graph initialisation\n" << std::endl;
+	std::cout << ">> Graph initialisation\n" << std::endl;
+
+	std::string strat_str = "";
+	switch (strategy)
+	{
+	case GroupStrategy::page:
+		strat_str = "By page";
+		break;
+	case GroupStrategy::domain:
+		strat_str = "By domain";
+		break;
+	case GroupStrategy::host:
+		strat_str = "By host";
+		break;
+	default:
+		break;
+	}
+
+	std::cout << "GroupStrategy: " + strat_str << std::endl;
+	strat = strategy;
 
 	if (zone == "in") {
 
@@ -40,7 +67,9 @@ Graph::Graph(std::string zone) {
 		file_str = "eu-2005";
 		
 	}
+	std::cout << std::endl;
 
+	std::cout << ">> Graph construction\n" << std::endl;
 	std::string node_str = "resources/" + file_str + ".nodes.txt";
 	std::string edge_str = "resources/" + file_str + ".edges.txt";
 
@@ -52,6 +81,9 @@ Graph::Graph(std::string zone) {
 
 	std::cout << "Reading " << edge_str << std::endl;
 	readFileContent(*this, edgefile, false);
+
+	std::cout << "Creating hyper-edges" << std::endl;
+	createHyperEdges();
 	
 	std::cout << "Graph completed\n" << std::endl;
 }
@@ -89,3 +121,24 @@ void readFileContent(Graph& gr, std::ifstream& file, bool isNode) {
 	}
 }
 
+void Graph::createHyperEdges() {
+
+	if (strat == GroupStrategy::page)
+	{
+		hyperedges.reserve(nodes.size());
+
+		for (int i = 0; i < nodes.size(); i++) {
+
+			HyperEdge h({ nodes[i] });
+			hyperedges.push_back(h);
+		}
+
+	} else if(strat == GroupStrategy::domain) {
+	
+	}
+	else if (strat == GroupStrategy::host) {
+
+	}
+
+	std::cout << "Done" << std::endl;
+}
