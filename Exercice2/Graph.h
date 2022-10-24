@@ -5,7 +5,9 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
-#include <chrono>
+#include <regex>
+#include <map>
+
 #include "GraphElem.h"
 
 class Graph
@@ -38,6 +40,17 @@ Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 
 	std::cout << ">> Graph initialisation\n" << std::endl;
 
+	if (zone == "in") {
+
+		std::cout << "Zone: India" << std::endl;
+		file_str = "in-2004";
+	}
+	else {
+		std::cout << "Zone: Europe" << std::endl;
+		file_str = "eu-2005";
+		
+	}
+
 	std::string strat_str = "";
 	switch (strategy)
 	{
@@ -54,20 +67,8 @@ Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 		break;
 	}
 
-	std::cout << "GroupStrategy: " + strat_str << std::endl;
+	std::cout << "GroupStrategy: " + strat_str << std::endl << std::endl;
 	strat = strategy;
-
-	if (zone == "in") {
-
-		std::cout << "Zone: India" << std::endl;
-		file_str = "in-2004";
-	}
-	else {
-		std::cout << "Zone: Europe" << std::endl;
-		file_str = "eu-2005";
-		
-	}
-	std::cout << std::endl;
 
 	std::cout << ">> Graph construction\n" << std::endl;
 	std::string node_str = "resources/" + file_str + ".nodes.txt";
@@ -123,17 +124,40 @@ void readFileContent(Graph& gr, std::ifstream& file, bool isNode) {
 
 void Graph::createHyperEdges() {
 
+	
+
 	if (strat == GroupStrategy::page)
 	{
 		hyperedges.reserve(nodes.size());
 
-		for (int i = 0; i < nodes.size(); i++) {
+		for (auto& page : nodes) {
 
-			HyperEdge h({ nodes[i] });
+			HyperEdge h({ page });
 			hyperedges.push_back(h);
 		}
 
 	} else if(strat == GroupStrategy::domain) {
+
+		std::string domain_name;
+		std::map<std::string, std::vector<Node>> by_url_list;
+
+		for (auto& page : nodes) {
+
+			std::string url = page.getUrl();
+
+			std::regex urlRe("^.*://([^/?:]+)/?.*$");
+			domain_name = std::regex_replace(url, urlRe, "$1");
+
+			by_url_list[domain_name].push_back(page);
+		}
+
+		hyperedges.reserve(by_url_list.size());
+
+		for (auto& url_list : by_url_list)
+		{
+			HyperEdge h(url_list.second);
+			hyperedges.push_back(h);
+		}
 	
 	}
 	else if (strat == GroupStrategy::host) {
