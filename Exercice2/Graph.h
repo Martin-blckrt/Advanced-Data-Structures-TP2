@@ -36,19 +36,19 @@ Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 
 	std::string file_str;	// file name str
 
-	std::cout << "Graph initialisation\n" << std::endl;
+	std::cout << ">> Graph initialisation\n" << std::endl;
 
 	std::string strat_str = "";
 	switch (strategy)
 	{
 	case GroupStrategy::page:
-		strat_str = "By Page";
+		strat_str = "By page";
 		break;
 	case GroupStrategy::domain:
-		strat_str = "By Domain";
+		strat_str = "By domain";
 		break;
 	case GroupStrategy::host:
-		strat_str = "By Host";
+		strat_str = "By host";
 		break;
 	default:
 		break;
@@ -67,7 +67,9 @@ Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 		file_str = "eu-2005";
 		
 	}
+	std::cout << std::endl;
 
+	std::cout << ">> Graph construction\n" << std::endl;
 	std::string node_str = "resources/" + file_str + ".nodes.txt";
 	std::string edge_str = "resources/" + file_str + ".edges.txt";
 
@@ -79,6 +81,9 @@ Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 
 	std::cout << "Reading " << edge_str << std::endl;
 	readFileContent(*this, edgefile, false);
+
+	std::cout << "Creating hyper-edges" << std::endl;
+	createHyperEdges();
 	
 	std::cout << "Graph completed\n" << std::endl;
 }
@@ -120,6 +125,13 @@ void Graph::createHyperEdges() {
 
 	if (strat == GroupStrategy::page)
 	{
+		hyperedges.reserve(nodes.size());
+
+		for (int i = 0; i < nodes.size(); i++) {
+
+			HyperEdge h({ nodes[i] });
+			hyperedges.push_back(h);
+		}
 
 	} else if(strat == GroupStrategy::domain) {
 	
@@ -127,4 +139,6 @@ void Graph::createHyperEdges() {
 	else if (strat == GroupStrategy::host) {
 
 	}
+
+	std::cout << "Done" << std::endl;
 }
