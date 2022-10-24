@@ -33,9 +33,17 @@ void Pixel::setBlue(double b)
 	blue = b;
 }
 
-ostream& operator<<(ostream& out, const Pixel& pixel)
+ostream& operator<<(ostream& out, const Pixel& pixel) // Surchage de l'opérateur d'output
 {
 	out << "(" << pixel.getRed() << "," << pixel.getGreen() << "," << pixel.getRed() << ")";
 	return out;
 }
 
+bool Pixel::operator==(Pixel const& test) const // Surchage de l'opérateur d'égalité pour comparer les pixels
+{
+	if (red == test.getRed() && green == test.getGreen() && blue == test.getBlue())
+	{
+		return true;
+	}
+	return false;
+}

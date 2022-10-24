@@ -20,6 +20,8 @@ public:
 	void setBlue(double);
 
 	friend ostream& operator<<(ostream& out, const Pixel& pixel);
+	bool operator==(Pixel const& test) const;
+
 private:
 	double red;
 	double green;
