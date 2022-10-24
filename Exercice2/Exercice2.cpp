@@ -4,6 +4,8 @@
 
 int main()
 {
-    auto* g = new Graph();
+    // Choose 'eu' or 'in' 
+
+    auto* g = new Graph("eu");
 
 }
