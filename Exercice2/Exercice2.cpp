@@ -48,7 +48,7 @@ pair<string, GroupStrategy> getInput() {
 	}
 
 	cout << "Choisir une strategie de regroupement" << endl;
-	cout << "1: Par page   2: Par domaine   3: Par hote" << endl;
+	cout << "1: Page   2: Domaine   3: Hote" << endl;
 
 	while (!(cin >> res) || (res != 1 && res != 2 && res != 3)) {
 
