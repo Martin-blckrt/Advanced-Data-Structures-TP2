@@ -101,14 +101,14 @@ class HyperEdge
 {
 public:
 
-	HyperEdge(HyperSet src, int dst, int stgth = 0) :
+	HyperEdge(HyperSet* src, int dst, int stgth = 0) :
 		srcSet(src), destNode(dst), strength(stgth) {};
 
-	HyperSet& getSource() { return srcSet; };
+	HyperSet* getSource() { return srcSet; };
 	int getDestination() { return destNode; };
 
 private:
-	HyperSet srcSet;
+	HyperSet* srcSet;
 	int destNode;
 
 	int strength;

@@ -23,23 +23,20 @@ public:
 	std::map<int, std::vector<int>> readEdgeFileContent(std::ifstream&);
 	void readNodeFileContent(std::ifstream&, std::map<int, std::vector<int>>&);
 
-	std::vector<Node*> getNodes() { return nodes; };
-	std::vector<Edge> getEdges() { return edges; };
-	std::vector<HyperSet> getHyperSets() { return hypersets; };
-	std::vector<HyperEdge> getHyperEdges() { return hyperedges; };
-
-	std::vector<int> getSources(int dest);
-	std::vector<int> getDestinations(int src);
+	std::vector<Node*>& getNodes() { return nodes; };
+	std::vector<Edge*>& getEdges() { return edges; };
+	std::vector<HyperSet*>& getHyperSets() { return hypersets; };
+	std::vector<HyperEdge*>& getHyperEdges() { return hyperedges; };
 
 	void createHyperSets();
 	void createHyperEdges();
 
 private:
 	std::vector<Node*> nodes;
-	std::vector<Edge> edges;
+	std::vector<Edge*> edges;
 
-	std::vector<HyperSet> hypersets;
-	std::vector<HyperEdge> hyperedges;
+	std::vector<HyperSet*> hypersets;
+	std::vector<HyperEdge*> hyperedges;
 };
 
 Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
@@ -105,6 +102,15 @@ Graph::~Graph() {
 
 	for (auto n : nodes)
 		delete n;
+
+	for (auto e : edges)
+		delete e;
+
+	for (auto hs : hypersets)
+		delete hs;
+
+	for (auto he : hyperedges)
+		delete he;
 }
 
 std::map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) {
@@ -127,7 +133,7 @@ std::map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) 
 				adj_map[nb1].push_back(nb2);
 				adj_map[nb1].shrink_to_fit();
 
-				edges.push_back(Edge(nb1, nb2));
+				edges.push_back(new Edge(nb1, nb2));
 			}
 	
 		}
@@ -169,15 +175,15 @@ void Graph::createHyperSets() {
 	{
 		hypersets.reserve(nodes.size());
 
-		for (auto& page : nodes) {
+		for (auto page : nodes) {
 
-			HyperSet h({ page });
+			HyperSet* h = new HyperSet({ page });
 			hypersets.push_back(h);
 		}
 
 	} else if(strat == GroupStrategy::domain) {
 
-		for (auto& page : nodes) {
+		for (auto page : nodes) {
 
 			std::string url = page->getUrl();
 
@@ -191,15 +197,15 @@ void Graph::createHyperSets() {
 
 		hypersets.reserve(by_url_list.size());
 
-		for (auto& url_list : by_url_list)
+		for (auto url_list : by_url_list)
 		{
-			HyperSet h(url_list.second);
+			HyperSet* h = new HyperSet(url_list.second);
 			hypersets.push_back(h);
 		}
 	}
 	else if (strat == GroupStrategy::host) {
 
-		for (auto& page : nodes) {
+		for (auto page : nodes) {
 
 			std::string url = page->getUrl();
 
@@ -210,9 +216,9 @@ void Graph::createHyperSets() {
 
 		hypersets.reserve(by_url_list.size());
 
-		for (auto& url_list : by_url_list)
+		for (auto url_list : by_url_list)
 		{
-			HyperSet h(url_list.second);
+			HyperSet* h = new HyperSet(url_list.second);
 			hypersets.push_back(h);
 		}
 	}
@@ -222,50 +228,17 @@ void Graph::createHyperSets() {
 	std::cout << "Done" << std::endl;
 }
 
-std::vector<int> Graph::getSources(int dest) {
-
-	std::vector<int> sources(edges.size());
-
-	for (auto& edge : edges)
-	{
-		if (edge.getDestination() == dest)
-		{
-			sources.push_back(edge.getSource());
-		}
-	}
-	sources.shrink_to_fit();
-
-	return sources;
-}
-
-std::vector<int> Graph::getDestinations(int src) {
-
-	std::vector<int> dests(edges.size());
-
-	for (auto& edge : edges)
-	{
-		if (edge.getSource() == src)
-		{
-			dests.push_back(edge.getDestination());
-		}
-	}
-	dests.shrink_to_fit();
-
-	return dests;
-}
-
-
 void Graph::createHyperEdges() {
 
 	if (!hypersets.empty())
 	{
-		for (auto& hyperset : hypersets)
+		for (auto hyperset : hypersets)
 		{
-			for (auto& node : hyperset.getSet())
+			for (auto node : hyperset->getSet())
 			{
-				for (auto& dest_ids : node->getAdj())
+				for (auto dest_ids : node->getAdj())
 				{
-					HyperEdge hedge(hyperset, dest_ids, 0);
+					HyperEdge* hedge = new HyperEdge(hyperset, dest_ids, 0);
 					hyperedges.push_back(hedge);
 				}
 			}
