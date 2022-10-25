@@ -170,8 +170,6 @@ void Graph::readNodeFileContent(std::ifstream& file, std::map<int, std::vector<i
 
 void Graph::createHyperSets() {
 
-	//TODO: Check si des noeuds sont présents dans différents sets (pas bien)
-
 	std::string content;
 	std::map<std::string, std::vector<Node*>> by_url_list;
 	std::regex urlRe("^.*://([^/?:]+)/?.*$");
