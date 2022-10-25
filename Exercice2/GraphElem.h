@@ -13,19 +13,13 @@ class Node
 {
 public:
 
-	Node(int id, int dg, std::string lk, std::vector<int> adj) :node_id(id), out_degree(dg), url(lk), adjNodes(adj) {};
+	Node(int id, int dg, std::string lk, std::vector<int>& adj) :node_id(id), out_degree(dg), url(lk), adjNodes(adj) {};
 
 	int getId() { return node_id; };
 	int getDegree() { return out_degree; };
 	std::string getUrl() { return url; };
 
-	std::vector<int> getAdj() { return adjNodes; };
-
-	bool operator==(const Node& other) const {
-		
-		return node_id == other.node_id && out_degree == other.out_degree && url == other.url;
-	};
-
+	std::vector<int>& getAdj() { return adjNodes; };
 
 private:
 	int node_id;
@@ -55,7 +49,7 @@ class HyperSet
 public:
 
 	HyperSet(){};
-	HyperSet(std::vector<Node*> node_set) : set(node_set){};
+	HyperSet(std::vector<Node*>& node_set) : set(node_set){};
 
 	bool setEmpty() { return set.empty(); };
 
@@ -67,6 +61,7 @@ public:
 			if (node->getId() == target_id)
 			{
 				res = true;
+				break;
 			}
 		}
 		return res;
@@ -106,6 +101,15 @@ public:
 
 	HyperSet* getSource() { return srcSet; };
 	int getDestination() { return destNode; };
+
+	void increaseStrength() { strength++; };
+	void increaseStrength(int bonus) { strength += bonus; };
+
+	bool operator==(const HyperEdge& other) const {
+
+		bool attr = srcSet == other.srcSet && destNode == other.destNode;
+		return attr && (this != &other);
+	};
 
 private:
 	HyperSet* srcSet;

@@ -23,6 +23,9 @@ public:
 	std::map<int, std::vector<int>> readEdgeFileContent(std::ifstream&);
 	void readNodeFileContent(std::ifstream&, std::map<int, std::vector<int>>&);
 
+	int containsHyperEdge(HyperEdge&);
+	void balanceHyperEdges();
+
 	std::vector<Node*>& getNodes() { return nodes; };
 	std::vector<Edge*>& getEdges() { return edges; };
 	std::vector<HyperSet*>& getHyperSets() { return hypersets; };
@@ -94,6 +97,9 @@ Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 
 	std::cout << "Creating hyper edges... ";
 	createHyperEdges();
+
+	std::cout << "Balancing edges... ";
+	balanceHyperEdges();
 	
 	std::cout << "Graph completed\n" << std::endl;
 }
@@ -171,6 +177,7 @@ void Graph::readNodeFileContent(std::ifstream& file, std::map<int, std::vector<i
 void Graph::createHyperSets() {
 
 	std::string content;
+	std::vector<Node*> node_list(1);
 	std::map<std::string, std::vector<Node*>> by_url_list;
 	std::regex urlRe("^.*://([^/?:]+)/?.*$");
 
@@ -180,7 +187,8 @@ void Graph::createHyperSets() {
 
 		for (auto page : nodes) {
 
-			HyperSet* h = new HyperSet({ page });
+			node_list = { page };
+			HyperSet* h = new HyperSet(node_list);
 			hypersets.push_back(h);
 		}
 
@@ -231,9 +239,25 @@ void Graph::createHyperSets() {
 	std::cout << "Done" << std::endl;
 }
 
+int Graph::containsHyperEdge(HyperEdge& target_hedge)
+{
+	int res = -1;
+
+	for (int i = 0; i < hyperedges.size(); i++)
+	{
+		if (*hyperedges[i] == target_hedge)
+		{
+			res = i;
+			break;
+		}
+	}
+
+	return res;
+}
+
 void Graph::createHyperEdges() {
 
-	//TODO: Check si des edges sont présentes (attribut strength)
+	std::map<int, std::vector<HyperSet*>> target_map;
 
 	if (!hypersets.empty())
 	{
@@ -241,12 +265,49 @@ void Graph::createHyperEdges() {
 		{
 			for (auto node : hyperset->getSet())
 			{
-				for (auto dest_ids : node->getAdj())
+				for (auto dest_id : node->getAdj())
 				{
-					HyperEdge* hedge = new HyperEdge(hyperset, dest_ids, 0);
-					hyperedges.push_back(hedge);
+					target_map[dest_id].push_back(hyperset);
 				}
 			}
+		}
+
+		hyperedges.reserve(target_map.size());
+
+		for (auto targ : target_map)
+		{
+			for (auto hs : targ.second)
+			{
+				HyperEdge* hedge = new HyperEdge(hs, targ.first, 0);	
+				hyperedges.push_back(hedge);
+			}
+		}
+	}
+
+	std::cout << "Done" << std::endl;
+}
+
+void Graph::balanceHyperEdges() {
+
+	std::map<HyperSet*, std::vector<int>> hit_list;
+
+	for (int i = 0; i < hyperedges.size(); i++)
+	{
+		hit_list[hyperedges[i]->getSource()].push_back(i);
+	}
+
+	for (auto hit : hit_list)
+	{
+		int bonus = hit.second.size();
+	
+		hyperedges[hit.second[0]]->increaseStrength(bonus);
+
+		while (hit.second.size() != 1)
+		{
+			int index = hit.second.back();
+			hyperedges.erase(hyperedges.begin() + index);
+			hit.second.pop_back();
+			hit.second.shrink_to_fit();
 		}
 	}
 
