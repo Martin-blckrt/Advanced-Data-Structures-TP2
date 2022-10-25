@@ -130,12 +130,15 @@ std::map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) 
 			// if it matches, register data
 			if (ss)
 			{
-				adj_map[nb1].push_back(nb2);
-				adj_map[nb1].shrink_to_fit();
+				// no self referencing link
+				if (nb1 != nb2)
+				{
+					adj_map[nb1].push_back(nb2);
+					adj_map[nb1].shrink_to_fit();
 
-				edges.push_back(new Edge(nb1, nb2));
+					edges.push_back(new Edge(nb1, nb2));
+				}	
 			}
-	
 		}
 
 		file.close();
@@ -166,6 +169,8 @@ void Graph::readNodeFileContent(std::ifstream& file, std::map<int, std::vector<i
 }
 
 void Graph::createHyperSets() {
+
+	//TODO: Check si des noeuds sont présents dans différents sets (pas bien)
 
 	std::string content;
 	std::map<std::string, std::vector<Node*>> by_url_list;
@@ -229,6 +234,8 @@ void Graph::createHyperSets() {
 }
 
 void Graph::createHyperEdges() {
+
+	//TODO: Check si des edges sont présentes (attribut strength)
 
 	if (!hypersets.empty())
 	{
