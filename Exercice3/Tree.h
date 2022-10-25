@@ -2,8 +2,8 @@
 #include <vector>
 #include <iostream>
 
-#define MAZE_WIDTH 9
-#define MAZE_HEIGHT 5
+#define MAZE_WIDTH 10
+#define MAZE_HEIGHT 10
 #define NORTH 0
 #define SOUTH 1
 #define EAST 2
@@ -14,17 +14,49 @@
 
 class Cell {
     friend class Tree;
+
+private:
+    int x = -1, y = -1;
+
+    int dir = -1;
+    bool Ndir = false, Sdir = false, Edir = false, Wdir = false;
+
+    bool target = false, source = false;
+    int solutionIndex = 0;
+
+    Cell* parent = nullptr;
+    std::vector<Cell*> children;
+
+    int g = 0;
+    int h = 0;
+    int f = 0;
+
 public:
     Cell(int, int);
     int getX() const;
     int getY() const;
 
     friend std::ostream& operator<<(std::ostream&, const Cell&);
+    void setTarget();
+    void setSource();
+    bool isTarget() const;
+    bool isSource() const;
 
-private:
-    int x = -1, y = -1;
-    int dir = -1;
-    bool Ndir = false, Sdir = false, Edir = false, Wdir = false;
+    int getSolutionIndex() const;
+    void setSolutionIndex(int solutionIndex);
+
+    Cell *getParent() const;
+    void setParent(Cell *parent);
+
+    const std::vector<Cell *> &getChildren() const;
+    void addChild(Cell*);
+
+    int getG() const;
+    void setG(int g);
+    int getH() const;
+    void setH(int h);
+    int getF() const;
+    void setF(int f);
 };
 
 class Tree {
@@ -34,6 +66,9 @@ public:
     void GrowingTree();
     Cell* getCell(int, int);
     void display();
+
+    Cell* getSource();
+    Cell* getTarget();
 
     friend std::ostream& operator<<(std::ostream&, const Tree&);
 

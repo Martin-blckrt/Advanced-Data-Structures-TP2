@@ -9,7 +9,7 @@ Tree::Tree() {
     initMaze();
 }
 
-Cell *Tree::getCell(int x, int y) {
+Cell* Tree::getCell(int x, int y) {
     return maze[x][y];
 }
 
@@ -40,8 +40,6 @@ void Tree::GrowingTree() {
                                  {SOUTH, NORTH,},
                                  {EAST,  WEST,},
                                  {WEST,  EAST,}};
-
-    display();
 
     auto x = rand() % MAZE_WIDTH;
     auto y = rand() % MAZE_HEIGHT;
@@ -88,8 +86,6 @@ void Tree::GrowingTree() {
                 list.push_back(maze[newX][newY]);
                 index = false;
 
-                display();
-                cout << "\n\n";
                 break;
             }
         }
@@ -97,7 +93,7 @@ void Tree::GrowingTree() {
             list.erase(list.begin());
     }
 }
-
+/*
 void Tree::display() {
     for (int k = 0; k < MAZE_WIDTH; k++)
         cout << "._";
@@ -123,6 +119,64 @@ void Tree::display() {
         }
         cout << endl;
     }
+}
+*/
+
+void Tree::display() {
+    for (int k = 0; k < MAZE_WIDTH; k++)
+        cout << "._";
+    cout << "." << endl;
+    for (int i = 0; i < MAZE_HEIGHT; i++) {
+        cout << "|";
+        for (int j = 0; j < MAZE_WIDTH; j++) {
+            if (i + 1 < MAZE_HEIGHT) {
+                if (this->maze[j][i]->Sdir || this->maze[j][i + 1]->Ndir) {
+                    if (this->maze[j][i]->source)
+                        cout << "S";
+                    else if (this->maze[j][i]->target)
+                        cout << "T";
+                    else if (this->maze[j][i]->solutionIndex != 0)
+                        cout << this->maze[j][i]->solutionIndex;
+                    else
+                        cout << " ";
+                } else
+                    cout << "_";
+            } else
+                cout << "_";
+
+            if (j + 1 < MAZE_WIDTH) {
+                if (this->maze[j][i]->Edir || this->maze[j + 1][i]->Wdir) {
+                    if (this->maze[j][i]->source)
+                        cout << "S";
+                    else if (this->maze[j][i]->target)
+                        cout << "T";
+                    else if (this->maze[j][i]->solutionIndex != 0)
+                        cout << this->maze[j][i]->solutionIndex;
+                    else
+                        cout << " ";
+                } else
+                    cout << "|";
+            } else
+                cout << "|";
+        }
+        cout << endl;
+    }
+}
+
+Cell* Tree::getTarget() {
+    for (int i = 0; i < MAZE_HEIGHT; i++)
+        for (int j = 0; j < MAZE_WIDTH; j++)
+            if(maze[i][j]->target)
+                return maze[i][j];
+    return nullptr;
+}
+
+Cell* Tree::getSource() {
+    for (int i = 0; i < MAZE_HEIGHT; i++)
+        for (int j = 0; j < MAZE_WIDTH; j++)
+            if(maze[i][j]->source)
+                return maze[i][j];
+    return nullptr;
 }
 
 
@@ -162,4 +216,68 @@ int Cell::getX() const {
 
 int Cell::getY() const {
     return y;
+}
+
+void Cell::setTarget() {
+    Cell::target = true;
+}
+
+void Cell::setSource() {
+    Cell::source = true;
+}
+
+bool Cell::isTarget() const {
+    return target;
+}
+
+bool Cell::isSource() const {
+    return source;
+}
+
+Cell *Cell::getParent() const {
+    return parent;
+}
+
+void Cell::setParent(Cell *parent) {
+    Cell::parent = parent;
+}
+
+const vector<Cell *> &Cell::getChildren() const {
+    return children;
+}
+
+void Cell::addChild(Cell* child) {
+    Cell::children.push_back(child);
+}
+
+int Cell::getG() const {
+    return g;
+}
+
+void Cell::setG(int g) {
+    Cell::g = g;
+}
+
+int Cell::getH() const {
+    return h;
+}
+
+void Cell::setH(int h) {
+    Cell::h = h;
+}
+
+int Cell::getF() const {
+    return f;
+}
+
+void Cell::setF(int f) {
+    Cell::f = f;
+}
+
+int Cell::getSolutionIndex() const {
+    return solutionIndex;
+}
+
+void Cell::setSolutionIndex(int solutionIndex) {
+    Cell::solutionIndex = solutionIndex;
 }
