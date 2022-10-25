@@ -2,8 +2,8 @@
 #include <vector>
 #include <iostream>
 
-#define MAZE_WIDTH 10
-#define MAZE_HEIGHT 10
+#define MAZE_WIDTH 5
+#define MAZE_HEIGHT 5
 #define NORTH 0
 #define SOUTH 1
 #define EAST 2
@@ -66,6 +66,8 @@ public:
     void GrowingTree();
     Cell* getCell(int, int);
     void display();
+
+    void resetTreeInformation();
 
     Cell* getSource();
     Cell* getTarget();

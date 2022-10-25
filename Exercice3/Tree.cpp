@@ -179,6 +179,20 @@ Cell* Tree::getSource() {
     return nullptr;
 }
 
+void Tree :: resetTreeInformation() {
+    for (int i = 0; i < MAZE_HEIGHT; i++)
+        for (int j = 0; j < MAZE_WIDTH; j++) {
+            maze[i][j]->source = false;
+            maze[i][j]->target = false;
+            maze[i][j]->solutionIndex = 0;
+            maze[i][j]->parent = nullptr;
+            maze[i][j]->children.clear();
+            maze[i][j]->g = 0;
+            maze[i][j]->h = 0;
+            maze[i][j]->f = 0;
+        }
+}
+
 
 ostream &operator<<(ostream &output, const Tree &t) {
 

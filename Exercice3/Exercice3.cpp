@@ -2,30 +2,56 @@
 #include <random>
 #include "Tree.h"
 #include "Algos.h"
+#include "utils.h"
 
-int main()
-{
+void menu();
+void mainMenu();
+int choice = 0;
+
+int main() {
     srand(time(nullptr));
-    auto tree = new Tree();
-    tree->GrowingTree();
-    tree->display();
-    cout << "\n";
-    auto xTarget = rand() % MAZE_WIDTH, yTarget = rand() % MAZE_HEIGHT;
-    auto xSource = rand() % MAZE_WIDTH, ySource = rand() % MAZE_HEIGHT;
-    while (xTarget == xSource && yTarget == ySource)
-        xSource = rand() % MAZE_WIDTH, ySource = rand() % MAZE_HEIGHT;
+    menu();
+    return 0;
+}
 
-    tree->getCell(xSource, ySource)->setSource();
-    tree->getCell(xTarget, yTarget)->setTarget();
-    cout << "Source is on : " << xSource << ", " << ySource << endl;
-    cout << "Target is on : " << xTarget << ", " << yTarget << endl;
-    tree->display();
-    deque<Cell*> BFSSolution = AStar(tree);
-    int i = 1;
-    for (Cell* cell : BFSSolution) {
-        cell->setSolutionIndex(i);
-        i++;
-    }
-    tree->display();
+void menu() {
+    do {
 
+        auto tree = new Tree();
+        tree->GrowingTree();
+        mainMenu();
+
+        switch(choice) {
+            case 0:
+                break;
+            case 1:
+                // change size and reset maze
+                break;
+            case 2:
+                tree->display();
+                cout << "\n";
+                break;
+            case 3:
+                generateSourceAndTarget(tree);
+                generateSolution(tree, "BFS");
+                break;
+            case 4:
+                generateSourceAndTarget(tree);
+                generateSolution(tree, "AStar");
+                break;
+            default:
+                break;
+        }
+    } while(choice != 0);
+}
+
+void mainMenu() {
+    cout << "\nSelect an action" << endl;
+    cout << "1 - Change maze dimensions (default is 5 by 5)" << endl;
+    cout << "2 - Print maze" << endl;
+    cout << "3 - Solve maze using BFS" << endl;
+    cout << "4 - Solve maze using A-star" << endl;
+    cout << "0 - Exit" << endl;
+    cout << "Please choose: ";
+    cin >> choice;
 }
