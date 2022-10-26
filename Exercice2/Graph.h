@@ -6,7 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <regex>
-#include <map>
+#include <unordered_map>
 #include <utility>
 
 #include "GraphElem.h"
@@ -20,11 +20,8 @@ public:
 	Graph(std::string, GroupStrategy);
 	~Graph();
 
-	std::map<int, std::vector<int>> readEdgeFileContent(std::ifstream&);
-	void readNodeFileContent(std::ifstream&, std::map<int, std::vector<int>>&);
-
-	int containsHyperEdge(HyperEdge&);
-	void balanceHyperEdges();
+	std::unordered_map<int, std::vector<int>> readEdgeFileContent(std::ifstream&);
+	void readNodeFileContent(std::ifstream&, std::unordered_map<int, std::vector<int>>&);
 
 	std::vector<Node*>& getNodes() { return nodes; };
 	std::vector<Edge*>& getEdges() { return edges; };
@@ -33,6 +30,8 @@ public:
 
 	void createHyperSets();
 	void createHyperEdges();
+
+	void balanceHyperEdges();
 
 private:
 	std::vector<Node*> nodes;
@@ -86,7 +85,7 @@ Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 	std::ifstream edgefile(edge_str);
 
 	std::cout << "Reading " << edge_str << std::endl;
-	std::map<int, std::vector<int>> adj_map = readEdgeFileContent(edgefile);
+	std::unordered_map<int, std::vector<int>> adj_map = readEdgeFileContent(edgefile);
 
 	std::cout << "Reading " << node_str << std::endl << std::endl;
 	readNodeFileContent(nodefile, adj_map);
@@ -119,10 +118,10 @@ Graph::~Graph() {
 		delete he;
 }
 
-std::map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) {
+std::unordered_map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) {
 
 	std::string line;	// line content
-	std::map<int, std::vector<int>> adj_map;
+	std::unordered_map<int, std::vector<int>> adj_map;
 
 	if (file.is_open()) {
 
@@ -153,7 +152,7 @@ std::map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) 
 	return adj_map;
 }
 
-void Graph::readNodeFileContent(std::ifstream& file, std::map<int, std::vector<int>>& adj_map) {
+void Graph::readNodeFileContent(std::ifstream& file, std::unordered_map<int, std::vector<int>>& adj_map) {
 
 	std::string line;
 
@@ -178,7 +177,7 @@ void Graph::createHyperSets() {
 
 	std::string content;
 	std::vector<Node*> node_list(1);
-	std::map<std::string, std::vector<Node*>> by_url_list;
+	std::unordered_map<std::string, std::vector<Node*>> by_url_list;
 	std::regex urlRe("^.*://([^/?:]+)/?.*$");
 
 	if (strat == GroupStrategy::page)
@@ -239,38 +238,17 @@ void Graph::createHyperSets() {
 	std::cout << "Done" << std::endl;
 }
 
-int Graph::containsHyperEdge(HyperEdge& target_hedge)
-{
-	int res = -1;
-
-	for (int i = 0; i < hyperedges.size(); i++)
-	{
-		if (*hyperedges[i] == target_hedge)
-		{
-			res = i;
-			break;
-		}
-	}
-
-	return res;
-}
-
 void Graph::createHyperEdges() {
 
-	std::map<int, std::vector<HyperSet*>> target_map;
+	std::unordered_map<int, std::vector<HyperSet*>> target_map;
 
 	if (!hypersets.empty())
 	{
 		for (auto hyperset : hypersets)
-		{
 			for (auto node : hyperset->getSet())
-			{
 				for (auto dest_id : node->getAdj())
-				{
 					target_map[dest_id].push_back(hyperset);
-				}
-			}
-		}
+		
 
 		hyperedges.reserve(target_map.size());
 
@@ -278,7 +256,7 @@ void Graph::createHyperEdges() {
 		{
 			for (auto hs : targ.second)
 			{
-				HyperEdge* hedge = new HyperEdge(hs, targ.first, 0);	
+				HyperEdge* hedge = new HyperEdge(hs, targ.first);	
 				hyperedges.push_back(hedge);
 			}
 		}
@@ -289,27 +267,31 @@ void Graph::createHyperEdges() {
 
 void Graph::balanceHyperEdges() {
 
-	std::map<HyperSet*, std::vector<int>> hit_list;
+	std::unordered_map<HyperSet*, std::vector<int>> hit_list;
 
 	for (int i = 0; i < hyperedges.size(); i++)
-	{
 		hit_list[hyperedges[i]->getSource()].push_back(i);
-	}
 
 	for (auto hit : hit_list)
 	{
-		int bonus = hit.second.size();
-	
-		hyperedges[hit.second[0]]->increaseStrength(bonus);
+		size_t bonus = hit.second.size();
 
-		while (hit.second.size() != 1)
+		for (int i = 0; i < bonus; i++)
 		{
-			int index = hit.second.back();
-			hyperedges.erase(hyperedges.begin() + index);
-			hit.second.pop_back();
-			hit.second.shrink_to_fit();
-		}
+			if(i == 0)
+				hyperedges[hit.second[i]]->setWeight(bonus);
+			else
+				delete hyperedges[hit.second[i]];
+		}				
 	}
 
+	hyperedges.shrink_to_fit();
+
+	int cpt = 0;
+	for (auto h : hyperedges)
+		if (h->getWeight() == 0)
+			cpt++;
+
+	std::cout << "nb zero weigths" << cpt << std::endl;
 	std::cout << "Done" << std::endl;
 }

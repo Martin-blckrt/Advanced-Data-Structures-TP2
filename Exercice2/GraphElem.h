@@ -75,6 +75,7 @@ public:
 			if (node->getId() == target_id)
 			{
 				res = node;
+				break;
 			}
 		}
 		return res;
@@ -96,14 +97,15 @@ class HyperEdge
 {
 public:
 
-	HyperEdge(HyperSet* src, int dst, int stgth = 0) :
-		srcSet(src), destNode(dst), strength(stgth) {};
+	HyperEdge(HyperSet* src, int dst, size_t w = 0) :
+		srcSet(src), destNode(dst), weight(w) {};
 
 	HyperSet* getSource() { return srcSet; };
 	int getDestination() { return destNode; };
+	size_t getWeight() { return weight; };
 
-	void increaseStrength() { strength++; };
-	void increaseStrength(int bonus) { strength += bonus; };
+	void increaseWeight() { weight++; };
+	void setWeight(size_t bonus) { weight = bonus; };
 
 	bool operator==(const HyperEdge& other) const {
 
@@ -115,5 +117,5 @@ private:
 	HyperSet* srcSet;
 	int destNode;
 
-	int strength;
+	size_t weight;
 };
