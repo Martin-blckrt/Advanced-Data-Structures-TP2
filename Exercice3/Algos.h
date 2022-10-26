@@ -1,10 +1,24 @@
 #include <cmath>
+#include <map>
 #include <algorithm>
 #include <queue>
 #include <deque>
 #include "Tree.h"
 
 using namespace std;
+
+std::map<int, int> dirX = {{NORTH, 0,},
+                           {SOUTH, 0,},
+                           {EAST,  1,},
+                           {WEST,  -1,}};
+std::map<int, int> dirY = {{NORTH, -1,},
+                           {SOUTH, 1,},
+                           {EAST,  0,},
+                           {WEST,  0,}};
+std::map<int, int> dirOpposite = {{NORTH, SOUTH,},
+                                  {SOUTH, NORTH,},
+                                  {EAST,  WEST,},
+                                  {WEST,  EAST,}};
 
 int getManhattanDistance(Cell* source, Cell* target) {
 
@@ -31,6 +45,35 @@ bool isCellUnvisited(int x, int y, vector<Cell*> &list) {
     return true;
 }
 
+bool isLegalMazeMove(Cell* current, int dir, Tree* tree) {
+
+    auto newX = current->getX() + dirX[dir];
+    auto newY = current->getY() + dirY[dir];
+    if (newX >= 0 && newY >= 0 && newX < MAZE_WIDTH && newY < MAZE_HEIGHT) {
+        switch (dir) {
+            case NORTH:
+                if (current->isNdir() || tree->getCell(newX, newY)->isSdir())
+                    return true;
+                break;
+            case SOUTH:
+                if (current->isSdir() || tree->getCell(newX, newY)->isNdir())
+                    return true;
+                break;
+            case EAST:
+                if (current->isEdir() || tree->getCell(newX, newY)->isWdir())
+                    return true;
+                break;
+            case WEST:
+                if (current->isWdir() || tree->getCell(newX, newY)->isEdir())
+                    return true;
+                break;
+            default:
+                break;
+        }
+    }
+    return false;
+}
+
 void buildCell(int x, int y, Cell* parentNode, Tree* tree) {
 
     Cell* childCell = tree->getCell(x, y);
@@ -42,24 +85,26 @@ void expandCell(Cell* cell, vector<Cell*> &closed, Tree* tree) {
 
     int x = cell->getX(), y = cell->getY();
 
-    if (x > 0 && isCellUnvisited(x - 1, y, closed))
+    if (isCellUnvisited(x - 1, y, closed) && isLegalMazeMove(cell, WEST, tree))
         buildCell(x - 1, y, cell, tree);
 
-    if (x < (MAZE_WIDTH - 1) && isCellUnvisited(x + 1, y, closed))
+    if (isCellUnvisited(x + 1, y, closed) && isLegalMazeMove(cell, EAST, tree))
         buildCell(x + 1, y, cell, tree);
 
-    if (y > 0 && isCellUnvisited(x, y - 1, closed))
+    if (isCellUnvisited(x, y - 1, closed) && isLegalMazeMove(cell, NORTH, tree))
         buildCell(x, y - 1, cell, tree);
 
-    if (y < (MAZE_HEIGHT - 1) && isCellUnvisited(x, y + 1, closed))
+    if (isCellUnvisited(x, y + 1, closed) && isLegalMazeMove(cell, SOUTH, tree))
         buildCell(x, y + 1, cell, tree);
 
 }
 
 deque<Cell*> BFS(Tree* tree) {
 
+    tree->resetTreeInformation(true, false);
+    int visIndex = 0;
+
     Cell* source = tree->getSource();
-    Cell* target = tree->getTarget();
     vector <Cell*> visited;
     deque <Cell*> solution;
     queue <Cell*> qu;
@@ -68,6 +113,7 @@ deque<Cell*> BFS(Tree* tree) {
 
     while (!qu.empty()) {
         Cell* current = qu.front();
+        current->setVisitedIndex(visIndex);
         qu.pop();
 
         if (current->isTarget()) {
@@ -86,10 +132,15 @@ deque<Cell*> BFS(Tree* tree) {
             for (auto child: current->getChildren())
                 qu.push(child);
         }
+        tree->display("exploration");
+        visIndex++;
     }
 }
 
 deque<Cell*> AStar(Tree* tree) {
+
+    tree->resetTreeInformation(true, false);
+    int visIndex = 0;
 
     Cell* source = tree->getSource();
     Cell* target = tree->getTarget();
@@ -113,6 +164,7 @@ deque<Cell*> AStar(Tree* tree) {
 
         opened.erase(opened.begin() + index);
         closed.push_back(current);
+        current->setVisitedIndex(visIndex);
 
         if (current->isTarget()) {
 
@@ -138,5 +190,7 @@ deque<Cell*> AStar(Tree* tree) {
 
             opened.push_back(child);
         }
+        tree->display("exploration");
+        visIndex++;
     }
 }

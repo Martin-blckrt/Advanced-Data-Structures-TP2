@@ -4,40 +4,40 @@
 #include "Algos.h"
 #include "utils.h"
 
-void menu();
+void menu(Tree*);
 void mainMenu();
 int choice = 0;
 
 int main() {
     srand(time(nullptr));
-    menu();
+    auto tree = new Tree();
+    menu(tree);
     return 0;
 }
 
-void menu() {
+void menu(Tree* tree) {
+    auto getTree = tree;
     do {
-
-        auto tree = new Tree();
-        tree->GrowingTree();
         mainMenu();
 
         switch(choice) {
             case 0:
                 break;
             case 1:
-                // change size and reset maze
+                getTree = new Tree();
                 break;
             case 2:
-                tree->display();
+                getTree->display("empty");
                 cout << "\n";
                 break;
             case 3:
-                generateSourceAndTarget(tree);
-                generateSolution(tree, "BFS");
+                generateSolution(getTree, "BFS");
                 break;
             case 4:
-                generateSourceAndTarget(tree);
-                generateSolution(tree, "AStar");
+                generateSolution(getTree, "AStar");
+                break;
+            case 5:
+                getTree->generateSourceAndTarget();
                 break;
             default:
                 break;
@@ -47,10 +47,11 @@ void menu() {
 
 void mainMenu() {
     cout << "\nSelect an action" << endl;
-    cout << "1 - Change maze dimensions (default is 5 by 5)" << endl;
+    cout << "1 - Change maze" << endl;
     cout << "2 - Print maze" << endl;
     cout << "3 - Solve maze using BFS" << endl;
     cout << "4 - Solve maze using A-star" << endl;
+    cout << "5 - Generate new source and target" << endl;
     cout << "0 - Exit" << endl;
     cout << "Please choose: ";
     cin >> choice;
