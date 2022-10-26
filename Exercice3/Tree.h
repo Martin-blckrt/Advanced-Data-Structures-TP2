@@ -4,8 +4,6 @@
 #include <map>
 #include <thread>
 
-#define MAZE_WIDTH 5
-#define MAZE_HEIGHT 5
 #define NORTH 0
 #define SOUTH 1
 #define EAST 2
@@ -89,7 +87,11 @@ public:
 
 class Tree {
 public:
-    Tree();
+    Tree(int, int);
+
+    int getHeight() const;
+
+    int getWidth() const;
 
     void initMaze();
 
@@ -125,6 +127,8 @@ public:
     friend std::ostream &operator<<(std::ostream &, const Tree &);
 
 private:
+    int height;
+    int width;
     std::vector<std::vector<Cell *> > maze;
 };
 

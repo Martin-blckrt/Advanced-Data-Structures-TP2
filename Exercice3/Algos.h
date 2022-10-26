@@ -49,7 +49,7 @@ bool isLegalMazeMove(Cell* current, int dir, Tree* tree) {
 
     auto newX = current->getX() + dirX[dir];
     auto newY = current->getY() + dirY[dir];
-    if (newX >= 0 && newY >= 0 && newX < MAZE_WIDTH && newY < MAZE_HEIGHT) {
+    if (newX >= 0 && newY >= 0 && newX < tree->getWidth() && newY < tree->getHeight()) {
         switch (dir) {
             case NORTH:
                 if (current->isNdir() || tree->getCell(newX, newY)->isSdir())

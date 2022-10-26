@@ -10,7 +10,7 @@ int choice = 0;
 
 int main() {
     srand(time(nullptr));
-    auto tree = new Tree();
+    auto tree = new Tree(5, 5);
     menu(tree);
     return 0;
 }
@@ -21,23 +21,23 @@ void menu(Tree* tree) {
         mainMenu();
 
         switch(choice) {
-            case 0:
-                break;
             case 1:
-                getTree = new Tree();
+                getTree = new Tree(getTree->getHeight(), getTree->getWidth());
                 break;
             case 2:
-                getTree->display("empty");
-                cout << "\n";
+                getTree->generateSourceAndTarget();
                 break;
             case 3:
-                generateSolution(getTree, "BFS");
+                getTree = new Tree(getSize("height"), getSize("width"));
                 break;
             case 4:
-                generateSolution(getTree, "AStar");
+                getTree->display("empty");
                 break;
             case 5:
-                getTree->generateSourceAndTarget();
+                generateSolution(getTree, "BFS");
+                break;
+            case 6:
+                generateSolution(getTree, "AStar");
                 break;
             default:
                 break;
@@ -47,11 +47,12 @@ void menu(Tree* tree) {
 
 void mainMenu() {
     cout << "\nSelect an action" << endl;
-    cout << "1 - Change maze" << endl;
-    cout << "2 - Print maze" << endl;
-    cout << "3 - Solve maze using BFS" << endl;
-    cout << "4 - Solve maze using A-star" << endl;
-    cout << "5 - Generate new source and target" << endl;
+    cout << "1 - Re-generate maze" << endl;
+    cout << "2 - Generate new source and target" << endl;
+    cout << "3 - Change maze dimensions (default is 5 by 5)" << endl;
+    cout << "4 - Print maze" << endl;
+    cout << "5 - Solve maze using BFS" << endl;
+    cout << "6 - Solve maze using A-star" << endl;
     cout << "0 - Exit" << endl;
     cout << "Please choose: ";
     cin >> choice;

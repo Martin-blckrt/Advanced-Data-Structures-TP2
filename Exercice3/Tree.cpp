@@ -4,7 +4,9 @@
 
 using namespace std;
 
-Tree::Tree() {
+Tree::Tree(int h, int w) {
+    height = h;
+    width = w;
     initMaze();
     growingTree();
     generateSourceAndTarget();
@@ -15,9 +17,9 @@ Cell* Tree::getCell(int x, int y) {
 }
 
 void Tree::initMaze() {
-    for (int i = 0; i < MAZE_WIDTH; i++) {
+    for (int i = 0; i < width; i++) {
         vector<Cell *> v;
-        for (int j = 0; j < MAZE_HEIGHT; j++)
+        for (int j = 0; j < height; j++)
             v.push_back(new Cell(i, j));
         maze.push_back(v);
     }
@@ -28,8 +30,8 @@ void Tree::growingTree() {
             .time_since_epoch()
             .count();
 
-    auto x = rand() % MAZE_WIDTH;
-    auto y = rand() % MAZE_HEIGHT;
+    auto x = rand() % width;
+    auto y = rand() % height;
 
     vector<Cell *> list;
     vector<int> directions = {NORTH, SOUTH, EAST, WEST};
@@ -49,7 +51,7 @@ void Tree::growingTree() {
         for (int dir : directions) {
             auto newX = x + dirX[dir];
             auto newY = y + dirY[dir];
-            if (newX >= 0 && newY >= 0 && newX < MAZE_WIDTH && newY < MAZE_HEIGHT && maze[newX][newY]->dir == -1) {
+            if (newX >= 0 && newY >= 0 && newX < width && newY < height && maze[newX][newY]->dir == -1) {
                 maze[x][y]->dir = dir;
 
                 switch (dir) {
@@ -82,8 +84,8 @@ void Tree::growingTree() {
 }
 
 bool Tree ::isThreeDigits() {
-    for (int i = 0; i < MAZE_WIDTH; i++)
-        for (int j = 0; j < MAZE_HEIGHT; j++)
+    for (int i = 0; i < width; i++)
+        for (int j = 0; j < height; j++)
             if (maze[i][j]->visitedIndex > 9)
                 return true;
     return false;
@@ -94,12 +96,12 @@ void Tree::display(const string& mode) {
         displayThreeDigits();
     else {
         cout << endl;
-        for (int k = 0; k < MAZE_WIDTH*2; k++)
+        for (int k = 0; k < width*2; k++)
             cout << "# ";
         cout << "# " << endl;
-        for (int i = 0; i < MAZE_HEIGHT*2; i++) {
+        for (int i = 0; i < height*2; i++) {
             cout << "# ";
-            for (int j = 0; j < MAZE_WIDTH*2; j++) {
+            for (int j = 0; j < width*2; j++) {
                 int x = i/2;
                 int y = j/2;
                 if (i % 2 == 0 && j % 2 == 0) { // Info de cellule
@@ -128,7 +130,7 @@ void Tree::display(const string& mode) {
 
                 } else if (i % 2 == 1 && j % 2 == 0) {  // Info de mur vertical
 
-                    if (i == (MAZE_HEIGHT*2 - 1)) // Si on est la dernière ligne
+                    if (i == (height*2 - 1)) // Si on est la dernière ligne
                         cout << "# ";
                     else {
                         if (this->maze[y][x]->Sdir || this->maze[y][x + 1]->Ndir)
@@ -139,7 +141,7 @@ void Tree::display(const string& mode) {
 
                 } else if (i % 2 == 0 && j % 2 == 1) {  // Info de mur horizontal
 
-                    if (j == (MAZE_WIDTH*2 - 1)) // Si on est la dernière colonne
+                    if (j == (width*2 - 1)) // Si on est la dernière colonne
                         cout << "# ";
                     else {
                         if (this->maze[y][x]->Edir || this->maze[y + 1][x]->Wdir)
@@ -160,12 +162,12 @@ void Tree::display(const string& mode) {
 */
 void Tree::display(const string& mode) {
     cout << endl;
-    for (int k = 0; k < MAZE_WIDTH*2; k++)
+    for (int k = 0; k < width*2; k++)
         cout << "## ";
     cout << "##" << endl;
-    for (int i = 0; i < MAZE_HEIGHT*2; i++) {
+    for (int i = 0; i < height*2; i++) {
         cout << "## ";
-        for (int j = 0; j < MAZE_WIDTH * 2; j++) {
+        for (int j = 0; j < width * 2; j++) {
             int x = i / 2;
             int y = j / 2;
             if (i % 2 == 0 && j % 2 == 0) { // Info de cellule
@@ -196,7 +198,7 @@ void Tree::display(const string& mode) {
 
             } else if (i % 2 == 1 && j % 2 == 0) {  // Info de mur vertical
 
-                if (i == (MAZE_HEIGHT * 2 - 1)) // Si on est la dernière ligne
+                if (i == (height * 2 - 1)) // Si on est la dernière ligne
                     cout << "## ";
                 else {
                     if (this->maze[y][x]->Sdir || this->maze[y][x + 1]->Ndir)
@@ -207,7 +209,7 @@ void Tree::display(const string& mode) {
 
             } else if (i % 2 == 0 && j % 2 == 1) {  // Info de mur horizontal
 
-                if (j == (MAZE_WIDTH * 2 - 1)) // Si on est la dernière colonne
+                if (j == (width * 2 - 1)) // Si on est la dernière colonne
                     cout << "## ";
                 else {
                     if (this->maze[y][x]->Edir || this->maze[y + 1][x]->Wdir)
@@ -227,36 +229,36 @@ void Tree::display(const string& mode) {
 }
 
 Cell* Tree::getTarget() {
-    for (int i = 0; i < MAZE_HEIGHT; i++)
-        for (int j = 0; j < MAZE_WIDTH; j++)
-            if(maze[i][j]->target)
-                return maze[i][j];
+    for (int i = 0; i < height; i++)
+        for (int j = 0; j < width; j++)
+            if(maze[j][i]->target)
+                return maze[j][i];
     return nullptr;
 }
 
 Cell* Tree::getSource() {
-    for (int i = 0; i < MAZE_HEIGHT; i++)
-        for (int j = 0; j < MAZE_WIDTH; j++)
-            if(maze[i][j]->source)
-                return maze[i][j];
+    for (int i = 0; i < height; i++)
+        for (int j = 0; j < width; j++)
+            if(maze[j][i]->source)
+                return maze[j][i];
     return nullptr;
 }
 
 void Tree :: resetTreeInformation(bool solution, bool sourceAndTarget) {
-    for (int i = 0; i < MAZE_HEIGHT; i++)
-        for (int j = 0; j < MAZE_WIDTH; j++) {
+    for (int i = 0; i < height; i++)
+        for (int j = 0; j < width; j++) {
             if (solution) {
-                maze[i][j]->solutionIndex = 0;
-                maze[i][j]->visitedIndex = 0;
-                maze[i][j]->parent = nullptr;
-                maze[i][j]->children.clear();
-                maze[i][j]->g = 0;
-                maze[i][j]->h = 0;
-                maze[i][j]->f = 0;
+                maze[j][i]->solutionIndex = 0;
+                maze[j][i]->visitedIndex = 0;
+                maze[j][i]->parent = nullptr;
+                maze[j][i]->children.clear();
+                maze[j][i]->g = 0;
+                maze[j][i]->h = 0;
+                maze[j][i]->f = 0;
             }
             if (sourceAndTarget) {
-                maze[i][j]->source = false;
-                maze[i][j]->target = false;
+                maze[j][i]->source = false;
+                maze[j][i]->target = false;
             }
         }
 }
@@ -264,10 +266,10 @@ void Tree :: resetTreeInformation(bool solution, bool sourceAndTarget) {
 void Tree :: generateSourceAndTarget() {
 
     resetTreeInformation(false, true);
-    auto xTarget = rand() % MAZE_WIDTH, yTarget = rand() % MAZE_HEIGHT;
-    auto xSource = rand() % MAZE_WIDTH, ySource = rand() % MAZE_HEIGHT;
+    auto xTarget = rand() % width, yTarget = rand() % height;
+    auto xSource = rand() % width, ySource = rand() % height;
     while (xTarget == xSource && yTarget == ySource)
-        xSource = rand() % MAZE_WIDTH, ySource = rand() % MAZE_HEIGHT;
+        xSource = rand() % width, ySource = rand() % height;
 
     maze[xSource][ySource]->setSource();
     maze[xTarget][yTarget]->setTarget();
@@ -283,6 +285,14 @@ ostream &operator<<(ostream &output, const Tree &t) {
         output << endl;
     }
     return output;
+}
+
+int Tree::getHeight() const {
+    return height;
+}
+
+int Tree::getWidth() const {
+    return width;
 }
 
 ostream &operator<<(ostream &output, const Cell &c) {
