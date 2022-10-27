@@ -26,7 +26,7 @@ public:
 	std::vector<Node*>& getNodes() { return nodes; };
 	std::vector<Edge*>& getEdges() { return edges; };
 	std::vector<HyperSet*>& getHyperSets() { return hypersets; };
-	std::vector<std::unique_ptr<HyperEdge>>& getHyperEdges() { return hyperedges; };
+	std::vector<HyperEdge*>& getHyperEdges() { return hyperedges; };
 
 	void createHyperSets();
 	void createHyperEdges();
@@ -39,7 +39,7 @@ private:
 	std::vector<Edge*> edges;
 
 	std::vector<HyperSet*> hypersets;
-	std::vector<std::unique_ptr<HyperEdge>> hyperedges;
+	std::vector<HyperEdge*> hyperedges;
 };
 
 Graph::Graph(const std::string& zone, GroupStrategy strategy = GroupStrategy::page) {
@@ -120,7 +120,8 @@ Graph::~Graph() {
 	for (auto hs : hypersets)
 		delete hs;
 
-	// no need for hyperedges
+	for (auto he : hyperedges)
+		delete he;
 }
 
 std::unordered_map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) {
@@ -261,7 +262,7 @@ void Graph::createHyperEdges() {
 		{
 			for (auto hs : targ.second)
 			{
-				std::unique_ptr<HyperEdge> hedge(new HyperEdge(hs, targ.first));
+				auto* hedge = new HyperEdge(hs, targ.first);
 				hyperedges.push_back(hedge);
 			}
 		}
@@ -291,19 +292,9 @@ void Graph::mesureWeights() {
 
 void Graph::removeDuplicates() {
 
-	std::unordered_map<HyperSet*, std::vector<std::unique_ptr<HyperEdge>>> hit_list;
+	std::unordered_map<HyperSet*, size_t> hit_list;
 
 	for (int i = 0; i < hyperedges.size(); i++)
-		hit_list[hyperedges[i]->getSource()].push_back(hyperedges[i]);
-
-	/*for (auto hit : hit_list)
-		for (auto h : hit.second)
-			delete h;*/
-
-	hyperedges.erase(std::remove_if(hyperedges.begin(),hyperedges.end(),
-		[](HyperEdge* e) { return e == nullptr; }), hyperedges.end());
-	
-	/*for (int i = 0; i < hyperedges.size(); i++)
 		hit_list[hyperedges[i]->getSource()] += 1;
 
 	for (int i = 0; i < hyperedges.size(); i++)
@@ -314,7 +305,7 @@ void Graph::removeDuplicates() {
 			delete hyperedges[i];
 			//hyperedges.erase(hyperedges.begin() + i);
 		}
-	}*/
+	}
 
 	hyperedges.shrink_to_fit();
 
