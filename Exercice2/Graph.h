@@ -292,22 +292,13 @@ void Graph::mesureWeights() {
 
 void Graph::removeDuplicates() {
 
-	std::unordered_map<HyperSet*, size_t> hit_list;
+	std::unordered_map<HyperSet*, std::vector<HyperEdge*>> hit_list;
 
 	for (int i = 0; i < hyperedges.size(); i++)
-		hit_list[hyperedges[i]->getSource()] += 1;
+		hit_list[hyperedges[i]->getSource()].push_back(hyperedges[i]);
 
-	for (int i = 0; i < hyperedges.size(); i++)
-	{
-		if (hit_list[hyperedges[i]->getSource()] >= 2)
-		{
-			hit_list[hyperedges[i]->getSource()] -= 1;
-			delete hyperedges[i];
-			//hyperedges.erase(hyperedges.begin() + i);
-		}
-	}
 
-	hyperedges.shrink_to_fit();
+	
 
 	std::cout << "Done" << std::endl;
 }
