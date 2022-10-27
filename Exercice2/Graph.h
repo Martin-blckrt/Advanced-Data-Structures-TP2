@@ -17,7 +17,7 @@ public:
 
 	GroupStrategy strat;
 
-	Graph(std::string, GroupStrategy);
+	Graph(const std::string&, GroupStrategy);
 	~Graph();
 
 	std::unordered_map<int, std::vector<int>> readEdgeFileContent(std::ifstream&);
@@ -31,7 +31,8 @@ public:
 	void createHyperSets();
 	void createHyperEdges();
 
-	void balanceHyperEdges();
+	void mesureWeights();
+	void removeDuplicates();
 
 private:
 	std::vector<Node*> nodes;
@@ -41,7 +42,7 @@ private:
 	std::vector<HyperEdge*> hyperedges;
 };
 
-Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
+Graph::Graph(const std::string& zone, GroupStrategy strategy = GroupStrategy::page) {
 
 	std::string file_str;	// file name str
 
@@ -58,7 +59,7 @@ Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 		
 	}
 
-	std::string strat_str = "";
+	std::string strat_str;
 	switch (strategy)
 	{
 	case GroupStrategy::page:
@@ -97,9 +98,14 @@ Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 	std::cout << "Creating hyper edges... ";
 	createHyperEdges();
 
-	std::cout << "Balancing edges... ";
-	balanceHyperEdges();
+	std::cout << "Calculating weights... ";
+	mesureWeights();
+
+	std::cout << "Removing duplicate edges... ";
+	removeDuplicates();
 	
+	std::cout << "hello " << hyperedges[11]->getWeight() << std::endl;
+
 	std::cout << "Graph completed\n" << std::endl;
 }
 
@@ -187,7 +193,7 @@ void Graph::createHyperSets() {
 		for (auto page : nodes) {
 
 			node_list = { page };
-			HyperSet* h = new HyperSet(node_list);
+			auto* h = new HyperSet(node_list);
 			hypersets.push_back(h);
 		}
 
@@ -209,7 +215,7 @@ void Graph::createHyperSets() {
 
 		for (auto url_list : by_url_list)
 		{
-			HyperSet* h = new HyperSet(url_list.second);
+			auto* h = new HyperSet(url_list.second);
 			hypersets.push_back(h);
 		}
 	}
@@ -228,7 +234,7 @@ void Graph::createHyperSets() {
 
 		for (auto url_list : by_url_list)
 		{
-			HyperSet* h = new HyperSet(url_list.second);
+			auto* h = new HyperSet(url_list.second);
 			hypersets.push_back(h);
 		}
 	}
@@ -252,11 +258,11 @@ void Graph::createHyperEdges() {
 
 		hyperedges.reserve(target_map.size());
 
-		for (auto targ : target_map)
+		for (const auto& targ : target_map)
 		{
 			for (auto hs : targ.second)
 			{
-				HyperEdge* hedge = new HyperEdge(hs, targ.first);	
+				auto* hedge = new HyperEdge(hs, targ.first);
 				hyperedges.push_back(hedge);
 			}
 		}
@@ -265,7 +271,7 @@ void Graph::createHyperEdges() {
 	std::cout << "Done" << std::endl;
 }
 
-void Graph::balanceHyperEdges() {
+void Graph::mesureWeights() {
 
 	std::unordered_map<HyperSet*, std::vector<int>> hit_list;
 
@@ -274,24 +280,34 @@ void Graph::balanceHyperEdges() {
 
 	for (auto hit : hit_list)
 	{
-		size_t bonus = hit.second.size();
+		auto ed_index = hit.second;
+		size_t bonus = ed_index.size();
 
-		for (int i = 0; i < bonus; i++)
+		for(auto elem_id : ed_index)
+			hyperedges[elem_id]->setWeight(bonus);
+	}
+
+	std::cout << "Done" << std::endl;
+}
+
+void Graph::removeDuplicates() {
+
+	std::unordered_map<HyperSet*, size_t> hit_list;
+
+	for (int i = 0; i < hyperedges.size(); i++)
+		hit_list[hyperedges[i]->getSource()] += 1;
+
+	for (int i = 0; i < hyperedges.size(); i++)
+	{
+		if (hit_list[hyperedges[i]->getSource()] >= 2)
 		{
-			if(i == 0)
-				hyperedges[hit.second[i]]->setWeight(bonus);
-			else
-				delete hyperedges[hit.second[i]];
-		}				
+			hit_list[hyperedges[i]->getSource()] -= 1;
+			delete hyperedges[i];
+			//hyperedges.erase(hyperedges.begin() + i);
+		}
 	}
 
 	hyperedges.shrink_to_fit();
 
-	int cpt = 0;
-	for (auto h : hyperedges)
-		if (h->getWeight() == 0)
-			cpt++;
-
-	std::cout << "nb zero weigths" << cpt << std::endl;
 	std::cout << "Done" << std::endl;
 }

@@ -3,20 +3,21 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <utility>
 
 // Utility header
 
-// Granularité
+// Granularite
 enum class GroupStrategy { page, domain, host };
 
 class Node
 {
 public:
 
-	Node(int id, int dg, std::string lk, std::vector<int>& adj) :node_id(id), out_degree(dg), url(lk), adjNodes(adj) {};
+	Node(int id, int dg, std::string lk, std::vector<int>& adj) :node_id(id), out_degree(dg), url(std::move(lk)), adjNodes(adj) {};
 
-	int getId() { return node_id; };
-	int getDegree() { return out_degree; };
+	int getId() const { return node_id; };
+	int getDegree() const { return out_degree; };
 	std::string getUrl() { return url; };
 
 	std::vector<int>& getAdj() { return adjNodes; };
@@ -36,8 +37,8 @@ public:
 
 	Edge(int src, int dst): source(src), dest(dst){};
 
-	int getSource() { return source; };
-	int getDestination() { return dest; };
+	int getSource() const { return source; };
+	int getDestination() const { return dest; };
 
 private:
 	int source;
@@ -48,8 +49,8 @@ class HyperSet
 {
 public:
 
-	HyperSet(){};
-	HyperSet(std::vector<Node*>& node_set) : set(node_set){};
+	HyperSet()= default;
+	explicit HyperSet(std::vector<Node*>& node_set) : set(node_set){};
 
 	bool setEmpty() { return set.empty(); };
 
@@ -101,8 +102,8 @@ public:
 		srcSet(src), destNode(dst), weight(w) {};
 
 	HyperSet* getSource() { return srcSet; };
-	int getDestination() { return destNode; };
-	size_t getWeight() { return weight; };
+	int getDestination() const { return destNode; };
+	size_t getWeight() const { return weight; };
 
 	void increaseWeight() { weight++; };
 	void setWeight(size_t bonus) { weight = bonus; };
