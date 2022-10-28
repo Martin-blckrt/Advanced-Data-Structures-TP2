@@ -2,12 +2,12 @@
 
 using namespace std;
 
-void generateSolution(Tree* tree, string algo) {
+void generateSolution(Tree* tree, const string& algo, bool heuristic) {
     deque<Cell*> solution;
     if (algo == "BFS")
         solution = BFS(tree);
     else if (algo == "AStar")
-        solution = AStar(tree);
+        solution = AStar(tree, heuristic);
     else
         cout << "Select a valid algorithm !" << endl;
     int i = 1;
@@ -19,7 +19,7 @@ void generateSolution(Tree* tree, string algo) {
     cout << algo << " found the solution in " << solution.back()->getVisitedIndex() << " iterations !" << endl;
 }
 
-int getSize(string dim) {
+int getSize(const string& dim) {
     int newDim = 0;
     do {
         cout << "What " << dim << " do you want ? ";

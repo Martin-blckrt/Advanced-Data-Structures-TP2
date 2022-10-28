@@ -34,10 +34,17 @@ void menu(Tree* tree) {
                 getTree->display("empty");
                 break;
             case 5:
-                generateSolution(getTree, "BFS");
+                generateSolution(getTree, "BFS", false);
                 break;
             case 6:
-                generateSolution(getTree, "AStar");
+                bool h;
+                do {
+                    cout << "Which heuristic do you want to use ? Type 0 for Manhattan distance, 1 for Euclidian distance" << endl;
+                    cin.clear();
+                    cin.ignore( numeric_limits<int>::max(), '\n' );
+                    cin >> h;
+                } while (cin.fail());
+                generateSolution(getTree, "AStar", h);
                 break;
             default:
                 break;

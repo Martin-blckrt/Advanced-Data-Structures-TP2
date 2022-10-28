@@ -27,9 +27,9 @@ private:
     Cell *parent = nullptr;
     std::vector<Cell *> children;
 
-    int g = 0;
-    int h = 0;
-    int f = 0;
+    float g = 0;
+    float h = 0;
+    float f = 0;
 
 public:
     Cell(int, int);
@@ -46,17 +46,11 @@ public:
 
     bool isWdir() const;
 
-    friend std::ostream &operator<<(std::ostream &, const Cell &);
-
     void setTarget();
 
     void setSource();
 
     bool isTarget() const;
-
-    bool isSource() const;
-
-    int getSolutionIndex() const;
 
     void setSolutionIndex(int solutionIndex);
 
@@ -72,17 +66,17 @@ public:
 
     void addChild(Cell *);
 
-    int getG() const;
+    float getG() const;
 
-    void setG(int g);
+    void setG(float g);
 
-    int getH() const;
+    float getH() const;
 
-    void setH(int h);
+    void setH(float h);
 
-    int getF() const;
+    float getF() const;
 
-    void setF(int f);
+    void setF(float f);
 };
 
 class Tree {
@@ -100,8 +94,6 @@ public:
     Cell *getCell(int, int);
 
     void display(const std::string&);
-
-    bool isThreeDigits();
 
     void resetTreeInformation(bool, bool);
 
@@ -123,8 +115,6 @@ public:
                                       {SOUTH, NORTH,},
                                       {EAST,  WEST,},
                                       {WEST,  EAST,}};
-
-    friend std::ostream &operator<<(std::ostream &, const Tree &);
 
 private:
     int height;

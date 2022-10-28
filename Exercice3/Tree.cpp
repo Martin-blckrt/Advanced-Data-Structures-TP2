@@ -16,6 +16,7 @@ Cell* Tree::getCell(int x, int y) {
     return maze[x][y];
 }
 
+// Initialize a maze of defined height and width with empty cells
 void Tree::initMaze() {
     for (int i = 0; i < width; i++) {
         vector<Cell *> v;
@@ -24,7 +25,7 @@ void Tree::initMaze() {
         maze.push_back(v);
     }
 }
-
+// The growing tree algorithm used to create a maze
 void Tree::growingTree() {
     unsigned seed = chrono::system_clock::now()
             .time_since_epoch()
@@ -39,21 +40,34 @@ void Tree::growingTree() {
     list.push_back(maze[x][y]);
 
     while (!list.empty()) {
-        // random select in list
+
+        // randomly select a cell in the list
         shuffle(list.begin(), list.end(), default_random_engine(seed));
         Cell *currentCell = list.front();
+
         bool index = true;
         x = currentCell->getX();
         y = currentCell->getY();
 
+        // shuffle the directions vector to get a random direction to explore
         shuffle(directions.begin(), directions.end(), default_random_engine(seed));
 
         for (int dir : directions) {
+
+            // if dir is a valid direction, we will break out of the for loop
             auto newX = x + dirX[dir];
             auto newY = y + dirY[dir];
+
+            // if new cell is valid : in the maze and unexplored
             if (newX >= 0 && newY >= 0 && newX < width && newY < height && maze[newX][newY]->dir == -1) {
+
+                // set this cell as explored
                 maze[x][y]->dir = dir;
 
+                // set the new cell as explored
+                maze[newX][newY]->dir = dirOpposite[dir];
+
+                // update this cell to keep the direction in which it "carved" a passage in the maze
                 switch (dir) {
                     case NORTH:
                         maze[x][y]->Ndir = true;
@@ -71,95 +85,21 @@ void Tree::growingTree() {
                         break;
                 }
 
-                maze[newX][newY]->dir = dirOpposite[dir];
+                // add the new cell to the list
                 list.push_back(maze[newX][newY]);
+
+                // set index to false so we do not erase the cell from the list : we havent finished exploring around it
                 index = false;
 
                 break;
             }
         }
+        // if index is true, then the cell we just explored failed for all 4 directions : it is a "dead" cell
         if (index)
             list.erase(list.begin());
     }
 }
 
-bool Tree ::isThreeDigits() {
-    for (int i = 0; i < width; i++)
-        for (int j = 0; j < height; j++)
-            if (maze[i][j]->visitedIndex > 9)
-                return true;
-    return false;
-}
-/*
-void Tree::display(const string& mode) {
-    if (isThreeDigits() && mode == "exploration")
-        displayThreeDigits();
-    else {
-        cout << endl;
-        for (int k = 0; k < width*2; k++)
-            cout << "# ";
-        cout << "# " << endl;
-        for (int i = 0; i < height*2; i++) {
-            cout << "# ";
-            for (int j = 0; j < width*2; j++) {
-                int x = i/2;
-                int y = j/2;
-                if (i % 2 == 0 && j % 2 == 0) { // Info de cellule
-
-                    if (mode == "empty") {
-                        cout << ". ";
-                    } else if (mode == "finished") {
-                        if (this->maze[y][x]->source)
-                            cout << "S ";
-                        else if (this->maze[y][x]->target)
-                            cout << "T ";
-                        else if (this->maze[y][x]->solutionIndex != 0)
-                            cout << "* ";
-                        else
-                            cout << ". ";
-                    } else if (mode == "exploration") {
-                        if (this->maze[y][x]->source)
-                            cout << "S ";
-                        else if (this->maze[y][x]->target)
-                            cout << "T ";
-                        else if (this->maze[y][x]->visitedIndex != 0)
-                            cout << this->maze[y][x]->visitedIndex << " ";
-                        else
-                            cout << ". ";
-                    }
-
-                } else if (i % 2 == 1 && j % 2 == 0) {  // Info de mur vertical
-
-                    if (i == (height*2 - 1)) // Si on est la dernière ligne
-                        cout << "# ";
-                    else {
-                        if (this->maze[y][x]->Sdir || this->maze[y][x + 1]->Ndir)
-                            cout << "  ";
-                        else
-                            cout << "# ";
-                    }
-
-                } else if (i % 2 == 0 && j % 2 == 1) {  // Info de mur horizontal
-
-                    if (j == (width*2 - 1)) // Si on est la dernière colonne
-                        cout << "# ";
-                    else {
-                        if (this->maze[y][x]->Edir || this->maze[y + 1][x]->Wdir)
-                            cout << "  ";
-                        else
-                            cout << "# ";
-                    }
-
-                } else  // Info d'intersection
-                    cout << "# ";
-            }
-            cout << endl;
-        }
-        if (mode == "exploration")
-            this_thread::sleep_for(1000ms);
-    }
-}
-*/
 void Tree::display(const string& mode) {
     cout << endl;
     for (int k = 0; k < width*2; k++)
@@ -170,10 +110,13 @@ void Tree::display(const string& mode) {
         for (int j = 0; j < width * 2; j++) {
             int x = i / 2;
             int y = j / 2;
-            if (i % 2 == 0 && j % 2 == 0) { // Info de cellule
+            if (i % 2 == 0 && j % 2 == 0) { // Cell information
 
+                // empty mode prints only the maze and its walls
                 if (mode == "empty") {
                     cout << " . ";
+
+                // finished mode prints the path between a source and a target
                 } else if (mode == "finished") {
                     if (this->maze[y][x]->source)
                         cout << " S ";
@@ -183,6 +126,8 @@ void Tree::display(const string& mode) {
                         cout << " * ";
                     else
                         cout << " . ";
+
+                // exploration mode prints each step of an algorithm
                 } else if (mode == "exploration") {
                     if (this->maze[y][x]->source)
                         cout << " S ";
@@ -196,9 +141,9 @@ void Tree::display(const string& mode) {
                         cout << " . ";
                 }
 
-            } else if (i % 2 == 1 && j % 2 == 0) {  // Info de mur vertical
+            } else if (i % 2 == 1 && j % 2 == 0) {  // Vertical walls information
 
-                if (i == (height * 2 - 1)) // Si on est la dernière ligne
+                if (i == (height * 2 - 1)) // If we are on last line
                     cout << "## ";
                 else {
                     if (this->maze[y][x]->Sdir || this->maze[y][x + 1]->Ndir)
@@ -207,9 +152,9 @@ void Tree::display(const string& mode) {
                         cout << "## ";
                 }
 
-            } else if (i % 2 == 0 && j % 2 == 1) {  // Info de mur horizontal
+            } else if (i % 2 == 0 && j % 2 == 1) {  // Horizontal walls information
 
-                if (j == (width * 2 - 1)) // Si on est la dernière colonne
+                if (j == (width * 2 - 1)) // If we are on last column
                     cout << "## ";
                 else {
                     if (this->maze[y][x]->Edir || this->maze[y + 1][x]->Wdir)
@@ -218,11 +163,12 @@ void Tree::display(const string& mode) {
                         cout << "## ";
                 }
 
-            } else  // Info d'intersection
+            } else  // Intersections between walls, always a wall
                 cout << "## ";
         }
         cout << endl;
     }
+    // Mode called while printing maze exploration, sleep for clarity
     if (mode == "exploration")
         this_thread::sleep_for(1000ms);
 
@@ -244,6 +190,7 @@ Cell* Tree::getSource() {
     return nullptr;
 }
 
+// resets tree information, etiher only source and target, only an algorithm exploration, or both
 void Tree :: resetTreeInformation(bool solution, bool sourceAndTarget) {
     for (int i = 0; i < height; i++)
         for (int j = 0; j < width; j++) {
@@ -263,6 +210,7 @@ void Tree :: resetTreeInformation(bool solution, bool sourceAndTarget) {
         }
 }
 
+// generates new source and target, checks for them to be different
 void Tree :: generateSourceAndTarget() {
 
     resetTreeInformation(false, true);
@@ -275,38 +223,12 @@ void Tree :: generateSourceAndTarget() {
     maze[xTarget][yTarget]->setTarget();
 }
 
-
-ostream &operator<<(ostream &output, const Tree &t) {
-
-    for (auto &i: t.maze) {
-        output << "|";
-        for (auto &j: i)
-            output << *j << " ";
-        output << endl;
-    }
-    return output;
-}
-
 int Tree::getHeight() const {
     return height;
 }
 
 int Tree::getWidth() const {
     return width;
-}
-
-ostream &operator<<(ostream &output, const Cell &c) {
-
-    string res;
-
-    if (res.empty())
-        res = ".";
-
-    res.append(" ");
-
-    output << res;
-
-    return output;
 }
 
 Cell::Cell(int coordX, int coordY) {
@@ -334,16 +256,12 @@ bool Cell::isTarget() const {
     return target;
 }
 
-bool Cell::isSource() const {
-    return source;
-}
-
 Cell *Cell::getParent() const {
     return parent;
 }
 
-void Cell::setParent(Cell *parent) {
-    Cell::parent = parent;
+void Cell::setParent(Cell *newParent) {
+    Cell::parent = newParent;
 }
 
 const vector<Cell *> &Cell::getChildren() const {
@@ -354,36 +272,32 @@ void Cell::addChild(Cell* child) {
     Cell::children.push_back(child);
 }
 
-int Cell::getG() const {
+float Cell::getG() const {
     return g;
 }
 
-void Cell::setG(int g) {
-    Cell::g = g;
+void Cell::setG(float newG) {
+    Cell::g = newG;
 }
 
-int Cell::getH() const {
+float Cell::getH() const {
     return h;
 }
 
-void Cell::setH(int h) {
-    Cell::h = h;
+void Cell::setH(float newH) {
+    Cell::h = newH;
 }
 
-int Cell::getF() const {
+float Cell::getF() const {
     return f;
 }
 
-void Cell::setF(int f) {
-    Cell::f = f;
+void Cell::setF(float newF) {
+    Cell::f = newF;
 }
 
-int Cell::getSolutionIndex() const {
-    return solutionIndex;
-}
-
-void Cell::setSolutionIndex(int solutionIndex) {
-    Cell::solutionIndex = solutionIndex;
+void Cell::setSolutionIndex(int solIndex) {
+    Cell::solutionIndex = solIndex;
 }
 
 bool Cell::isNdir() const {
@@ -406,6 +320,6 @@ int Cell::getVisitedIndex() const {
     return visitedIndex;
 }
 
-void Cell::setVisitedIndex(int visitedIndex) {
-    Cell::visitedIndex = visitedIndex;
+void Cell::setVisitedIndex(int visIndex) {
+    Cell::visitedIndex = visIndex;
 }
