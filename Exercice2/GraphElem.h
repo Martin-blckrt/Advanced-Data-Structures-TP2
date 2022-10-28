@@ -49,7 +49,6 @@ class HyperSet
 {
 public:
 
-	HyperSet()= default;
 	explicit HyperSet(std::vector<Node*>& node_set) : set(node_set){};
 
 	bool setEmpty() { return set.empty(); };

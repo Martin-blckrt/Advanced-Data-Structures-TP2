@@ -147,8 +147,6 @@ std::map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) 
 				if (nb1 != nb2)
 				{
 					adj_map[nb1].push_back(nb2);
-					adj_map[nb1].shrink_to_fit();
-
 					edges.push_back(new Edge(nb1, nb2));
 				}	
 			}
