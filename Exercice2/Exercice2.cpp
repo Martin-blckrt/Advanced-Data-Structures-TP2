@@ -11,6 +11,8 @@ int main()
 {
 	cout << "DEVOIR 2 - Exercice 2" << endl;
 
+	std::cout << "\n>> User choices" << std::endl;
+
     // Choose 'eu' or 'in' and group strategy 
     pair<string, GroupStrategy> choices = getInput();
 

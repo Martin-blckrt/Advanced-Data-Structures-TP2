@@ -6,8 +6,9 @@
 #include <fstream>
 #include <sstream>
 #include <regex>
-#include <map>
+#include <unordered_map>
 #include <utility>
+#include <algorithm>
 
 #include "GraphElem.h"
 
@@ -17,11 +18,11 @@ public:
 
 	GroupStrategy strat;
 
-	Graph(std::string, GroupStrategy);
+	Graph(const std::string&, GroupStrategy);
 	~Graph();
 
-	std::map<int, std::vector<int>> readEdgeFileContent(std::ifstream&);
-	void readNodeFileContent(std::ifstream&, std::map<int, std::vector<int>>&);
+	std::unordered_map<int, std::vector<int>> readEdgeFileContent(std::ifstream&);
+	void readNodeFileContent(std::ifstream&, std::unordered_map<int, std::vector<int>>&);
 
 	std::vector<Node*>& getNodes() { return nodes; };
 	std::vector<Edge*>& getEdges() { return edges; };
@@ -31,6 +32,10 @@ public:
 	void createHyperSets();
 	void createHyperEdges();
 
+	std::unordered_map<HyperSet*, std::vector<HyperEdge*>> findDuplicates();
+	void mesureWeights();
+	void removeDuplicates();
+
 private:
 	std::vector<Node*> nodes;
 	std::vector<Edge*> edges;
@@ -39,7 +44,7 @@ private:
 	std::vector<HyperEdge*> hyperedges;
 };
 
-Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
+Graph::Graph(const std::string& zone, GroupStrategy strategy = GroupStrategy::page) {
 
 	std::string file_str;	// file name str
 
@@ -56,7 +61,7 @@ Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 		
 	}
 
-	std::string strat_str = "";
+	std::string strat_str;
 	switch (strategy)
 	{
 	case GroupStrategy::page:
@@ -83,7 +88,7 @@ Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 	std::ifstream edgefile(edge_str);
 
 	std::cout << "Reading " << edge_str << std::endl;
-	std::map<int, std::vector<int>> adj_map = readEdgeFileContent(edgefile);
+	std::unordered_map<int, std::vector<int>> adj_map = readEdgeFileContent(edgefile);
 
 	std::cout << "Reading " << node_str << std::endl << std::endl;
 	readNodeFileContent(nodefile, adj_map);
@@ -94,7 +99,15 @@ Graph::Graph(std::string zone, GroupStrategy strategy = GroupStrategy::page) {
 
 	std::cout << "Creating hyper edges... ";
 	createHyperEdges();
+
+	std::cout << "Calculating weights... ";
+	mesureWeights();
+
+	std::cout << "Removing duplicate edges... ";
+	removeDuplicates();
 	
+	std::cout << "hello " << hyperedges[11]->getWeight() << std::endl;
+
 	std::cout << "Graph completed\n" << std::endl;
 }
 
@@ -113,10 +126,10 @@ Graph::~Graph() {
 		delete he;
 }
 
-std::map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) {
+std::unordered_map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) {
 
 	std::string line;	// line content
-	std::map<int, std::vector<int>> adj_map;
+	std::unordered_map<int, std::vector<int>> adj_map;
 
 	if (file.is_open()) {
 
@@ -130,12 +143,15 @@ std::map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) 
 			// if it matches, register data
 			if (ss)
 			{
-				adj_map[nb1].push_back(nb2);
-				adj_map[nb1].shrink_to_fit();
+				// no self referencing link
+				if (nb1 != nb2)
+				{
+					adj_map[nb1].push_back(nb2);
+					adj_map[nb1].shrink_to_fit();
 
-				edges.push_back(new Edge(nb1, nb2));
+					edges.push_back(new Edge(nb1, nb2));
+				}	
 			}
-	
 		}
 
 		file.close();
@@ -144,7 +160,7 @@ std::map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) 
 	return adj_map;
 }
 
-void Graph::readNodeFileContent(std::ifstream& file, std::map<int, std::vector<int>>& adj_map) {
+void Graph::readNodeFileContent(std::ifstream& file, std::unordered_map<int, std::vector<int>>& adj_map) {
 
 	std::string line;
 
@@ -168,7 +184,8 @@ void Graph::readNodeFileContent(std::ifstream& file, std::map<int, std::vector<i
 void Graph::createHyperSets() {
 
 	std::string content;
-	std::map<std::string, std::vector<Node*>> by_url_list;
+	std::vector<Node*> node_list(1);
+	std::unordered_map<std::string, std::vector<Node*>> by_url_list;
 	std::regex urlRe("^.*://([^/?:]+)/?.*$");
 
 	if (strat == GroupStrategy::page)
@@ -177,7 +194,8 @@ void Graph::createHyperSets() {
 
 		for (auto page : nodes) {
 
-			HyperSet* h = new HyperSet({ page });
+			node_list = { page };
+			auto* h = new HyperSet(node_list);
 			hypersets.push_back(h);
 		}
 
@@ -199,7 +217,7 @@ void Graph::createHyperSets() {
 
 		for (auto url_list : by_url_list)
 		{
-			HyperSet* h = new HyperSet(url_list.second);
+			auto* h = new HyperSet(url_list.second);
 			hypersets.push_back(h);
 		}
 	}
@@ -218,7 +236,7 @@ void Graph::createHyperSets() {
 
 		for (auto url_list : by_url_list)
 		{
-			HyperSet* h = new HyperSet(url_list.second);
+			auto* h = new HyperSet(url_list.second);
 			hypersets.push_back(h);
 		}
 	}
@@ -230,20 +248,82 @@ void Graph::createHyperSets() {
 
 void Graph::createHyperEdges() {
 
+	std::unordered_map<int, std::vector<HyperSet*>> target_map;
+
 	if (!hypersets.empty())
 	{
 		for (auto hyperset : hypersets)
-		{
 			for (auto node : hyperset->getSet())
+				for (auto dest_id : node->getAdj())
+					target_map[dest_id].push_back(hyperset);
+		
+
+		hyperedges.reserve(target_map.size());
+
+		for (const auto& targ : target_map)
+		{
+			for (auto hs : targ.second)
 			{
-				for (auto dest_ids : node->getAdj())
-				{
-					HyperEdge* hedge = new HyperEdge(hyperset, dest_ids, 0);
-					hyperedges.push_back(hedge);
-				}
+				auto* hedge = new HyperEdge(hs, targ.first);
+				hyperedges.push_back(hedge);
 			}
 		}
 	}
+
+	std::cout << "Done" << std::endl;
+}
+
+std::unordered_map<HyperSet*, std::vector<HyperEdge*>> Graph::findDuplicates()
+{
+	std::unordered_map<HyperSet*, std::vector<HyperEdge*>> hit_list;
+
+	for (int i = 0; i < hyperedges.size(); i++)
+	{
+		auto curr_src = hyperedges[i]->getSource();
+
+		if (hit_list.count(curr_src) != 0)
+		{
+			if (hit_list[curr_src][0]->getDestination() == hyperedges[i]->getDestination())
+				hit_list[curr_src].push_back(hyperedges[i]);
+
+		}
+		else {
+			hit_list[curr_src].push_back(hyperedges[i]);
+		}
+	}
+
+	return hit_list;
+}
+
+void Graph::mesureWeights() {
+
+	auto hit_list = findDuplicates();
+
+	for (auto hit : hit_list)
+	{
+		auto ed_list = hit.second;
+		size_t bonus = ed_list.size();
+
+		for(auto ed : ed_list)
+			ed->setWeight(bonus);
+	}
+
+	std::cout << "Done" << std::endl;
+}
+
+void Graph::removeDuplicates() {
+
+	auto hit_list = findDuplicates();
+	
+	std::vector<HyperEdge*> result;
+
+	for (auto hit : hit_list)
+	{
+		result.insert(result.end(), hit.second.begin(), hit.second.end());
+	}
+	
+	hyperedges = result;
+	hyperedges.shrink_to_fit();
 
 	std::cout << "Done" << std::endl;
 }
