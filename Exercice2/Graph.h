@@ -8,6 +8,7 @@
 #include <regex>
 #include <unordered_map>
 #include <utility>
+#include <algorithm>
 
 #include "GraphElem.h"
 
@@ -31,6 +32,7 @@ public:
 	void createHyperSets();
 	void createHyperEdges();
 
+	std::unordered_map<HyperSet*, std::vector<HyperEdge*>> findDuplicates();
 	void mesureWeights();
 	void removeDuplicates();
 
@@ -271,20 +273,39 @@ void Graph::createHyperEdges() {
 	std::cout << "Done" << std::endl;
 }
 
-void Graph::mesureWeights() {
-
-	std::unordered_map<HyperSet*, std::vector<int>> hit_list;
+std::unordered_map<HyperSet*, std::vector<HyperEdge*>> Graph::findDuplicates()
+{
+	std::unordered_map<HyperSet*, std::vector<HyperEdge*>> hit_list;
 
 	for (int i = 0; i < hyperedges.size(); i++)
-		hit_list[hyperedges[i]->getSource()].push_back(i);
+	{
+		auto curr_src = hyperedges[i]->getSource();
+
+		if (hit_list.count(curr_src) != 0)
+		{
+			if (hit_list[curr_src][0]->getDestination() == hyperedges[i]->getDestination())
+				hit_list[curr_src].push_back(hyperedges[i]);
+
+		}
+		else {
+			hit_list[curr_src].push_back(hyperedges[i]);
+		}
+	}
+
+	return hit_list;
+}
+
+void Graph::mesureWeights() {
+
+	auto hit_list = findDuplicates();
 
 	for (auto hit : hit_list)
 	{
-		auto ed_index = hit.second;
-		size_t bonus = ed_index.size();
+		auto ed_list = hit.second;
+		size_t bonus = ed_list.size();
 
-		for(auto elem_id : ed_index)
-			hyperedges[elem_id]->setWeight(bonus);
+		for(auto ed : ed_list)
+			ed->setWeight(bonus);
 	}
 
 	std::cout << "Done" << std::endl;
@@ -292,13 +313,17 @@ void Graph::mesureWeights() {
 
 void Graph::removeDuplicates() {
 
-	std::unordered_map<HyperSet*, std::vector<HyperEdge*>> hit_list;
-
-	for (int i = 0; i < hyperedges.size(); i++)
-		hit_list[hyperedges[i]->getSource()].push_back(hyperedges[i]);
-
-
+	auto hit_list = findDuplicates();
 	
+	std::vector<HyperEdge*> result;
+
+	for (auto hit : hit_list)
+	{
+		result.insert(result.end(), hit.second.begin(), hit.second.end());
+	}
+	
+	hyperedges = result;
+	hyperedges.shrink_to_fit();
 
 	std::cout << "Done" << std::endl;
 }
