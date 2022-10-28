@@ -32,9 +32,7 @@ public:
 	void createHyperSets();
 	void createHyperEdges();
 
-	std::map<HyperSet*, std::vector<HyperEdge*>> findDuplicates();
-	void mesureWeights();
-	void removeDuplicates();
+	void balanceGraph();
 
 private:
 	std::vector<Node*> nodes;
@@ -100,13 +98,8 @@ Graph::Graph(const std::string& zone, GroupStrategy strategy = GroupStrategy::pa
 	std::cout << "Creating hyper edges... ";
 	createHyperEdges();
 
-	std::cout << "Calculating weights... ";
-	mesureWeights();
-
-	std::cout << "Removing duplicate edges... ";
-	removeDuplicates();
-	
-	std::cout << "hello " << hyperedges[11]->getWeight() << std::endl;
+	std::cout << "Calculating weights and removing duplicate edges... ";
+	balanceGraph();
 
 	std::cout << "Graph completed\n" << std::endl;
 }
@@ -268,9 +261,11 @@ void Graph::createHyperEdges() {
 	std::cout << "Done" << std::endl;
 }
 
-std::map<HyperSet*, std::vector<HyperEdge*>> Graph::findDuplicates()
+void Graph::balanceGraph()
 {
+	int dupliCount = 0;
 	std::map<HyperSet*, std::vector<HyperEdge*>> hit_list;
+	std::map<HyperSet*, std::vector<HyperEdge*>> orphans;
 
 	for (int i = 0; i < hyperedges.size(); i++)
 	{
@@ -280,36 +275,14 @@ std::map<HyperSet*, std::vector<HyperEdge*>> Graph::findDuplicates()
 		{
 			if (hit_list[curr_src][0]->getDestination() == hyperedges[i]->getDestination())
 				hit_list[curr_src].push_back(hyperedges[i]);
-
+			else
+				orphans[curr_src].push_back(hyperedges[i]);
 		}
 		else {
 			hit_list[curr_src].push_back(hyperedges[i]);
 		}
 	}
 
-	return hit_list;
-}
-
-void Graph::mesureWeights() {
-
-	auto hit_list = findDuplicates();
-
-	for (auto hit : hit_list)
-	{
-		auto ed_list = hit.second;
-		size_t bonus = ed_list.size();
-
-		for(auto ed : ed_list)
-			ed->setWeight(bonus);
-	}
-
-	std::cout << "Done" << std::endl;
-}
-
-void Graph::removeDuplicates() {
-
-	auto hit_list = findDuplicates();
-	
 	std::vector<HyperEdge*> result;
 
 	for (auto hit : hit_list)
@@ -317,14 +290,27 @@ void Graph::removeDuplicates() {
 		auto elem = hit.second.back();
 		size_t vec_size = hit.second.size();
 
+		elem->setWeight(vec_size);
 		result.push_back(elem);
 
 		for (int i = 0; i < vec_size - 1; i++)
+		{
 			delete hit.second[i];
+			dupliCount++;
+		}
 	}
-	
+
+	for (auto orph : orphans)
+	{
+		for (auto elem : orph.second)
+		{
+			elem->setWeight(1);
+			result.push_back(elem);
+		}
+	}
+
 	hyperedges = result;
 	hyperedges.shrink_to_fit();
 
-	std::cout << "Done" << std::endl;
+	std::cout << "Done, removed " << dupliCount << " duplicates" << std::endl;
 }
