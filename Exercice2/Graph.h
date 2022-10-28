@@ -6,7 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <regex>
-#include <unordered_map>
+#include <map>
 #include <utility>
 #include <algorithm>
 
@@ -21,8 +21,8 @@ public:
 	Graph(const std::string&, GroupStrategy);
 	~Graph();
 
-	std::unordered_map<int, std::vector<int>> readEdgeFileContent(std::ifstream&);
-	void readNodeFileContent(std::ifstream&, std::unordered_map<int, std::vector<int>>&);
+	std::map<int, std::vector<int>> readEdgeFileContent(std::ifstream&);
+	void readNodeFileContent(std::ifstream&, std::map<int, std::vector<int>>&);
 
 	std::vector<Node*>& getNodes() { return nodes; };
 	std::vector<Edge*>& getEdges() { return edges; };
@@ -32,7 +32,7 @@ public:
 	void createHyperSets();
 	void createHyperEdges();
 
-	std::unordered_map<HyperSet*, std::vector<HyperEdge*>> findDuplicates();
+	std::map<HyperSet*, std::vector<HyperEdge*>> findDuplicates();
 	void mesureWeights();
 	void removeDuplicates();
 
@@ -88,7 +88,7 @@ Graph::Graph(const std::string& zone, GroupStrategy strategy = GroupStrategy::pa
 	std::ifstream edgefile(edge_str);
 
 	std::cout << "Reading " << edge_str << std::endl;
-	std::unordered_map<int, std::vector<int>> adj_map = readEdgeFileContent(edgefile);
+	std::map<int, std::vector<int>> adj_map = readEdgeFileContent(edgefile);
 
 	std::cout << "Reading " << node_str << std::endl << std::endl;
 	readNodeFileContent(nodefile, adj_map);
@@ -126,10 +126,10 @@ Graph::~Graph() {
 		delete he;
 }
 
-std::unordered_map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) {
+std::map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) {
 
 	std::string line;	// line content
-	std::unordered_map<int, std::vector<int>> adj_map;
+	std::map<int, std::vector<int>> adj_map;
 
 	if (file.is_open()) {
 
@@ -160,7 +160,7 @@ std::unordered_map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstre
 	return adj_map;
 }
 
-void Graph::readNodeFileContent(std::ifstream& file, std::unordered_map<int, std::vector<int>>& adj_map) {
+void Graph::readNodeFileContent(std::ifstream& file, std::map<int, std::vector<int>>& adj_map) {
 
 	std::string line;
 
@@ -185,7 +185,7 @@ void Graph::createHyperSets() {
 
 	std::string content;
 	std::vector<Node*> node_list(1);
-	std::unordered_map<std::string, std::vector<Node*>> by_url_list;
+	std::map<std::string, std::vector<Node*>> by_url_list;
 	std::regex urlRe("^.*://([^/?:]+)/?.*$");
 
 	if (strat == GroupStrategy::page)
@@ -248,34 +248,31 @@ void Graph::createHyperSets() {
 
 void Graph::createHyperEdges() {
 
-	std::unordered_map<int, std::vector<HyperSet*>> target_map;
+	std::map<int, std::vector<HyperSet*>> target_map;
 
-	if (!hypersets.empty())
+	for (auto hyperset : hypersets)
+		for (auto node : hyperset->getSet())
+			for (auto dest_id : node->getAdj())
+				target_map[dest_id].push_back(hyperset);
+
+
+	hyperedges.reserve(target_map.size());
+
+	for (const auto& targ : target_map)
 	{
-		for (auto hyperset : hypersets)
-			for (auto node : hyperset->getSet())
-				for (auto dest_id : node->getAdj())
-					target_map[dest_id].push_back(hyperset);
-		
-
-		hyperedges.reserve(target_map.size());
-
-		for (const auto& targ : target_map)
+		for (auto hs : targ.second)
 		{
-			for (auto hs : targ.second)
-			{
-				auto* hedge = new HyperEdge(hs, targ.first);
-				hyperedges.push_back(hedge);
-			}
+			auto* hedge = new HyperEdge(hs, targ.first);
+			hyperedges.push_back(hedge);
 		}
 	}
 
 	std::cout << "Done" << std::endl;
 }
 
-std::unordered_map<HyperSet*, std::vector<HyperEdge*>> Graph::findDuplicates()
+std::map<HyperSet*, std::vector<HyperEdge*>> Graph::findDuplicates()
 {
-	std::unordered_map<HyperSet*, std::vector<HyperEdge*>> hit_list;
+	std::map<HyperSet*, std::vector<HyperEdge*>> hit_list;
 
 	for (int i = 0; i < hyperedges.size(); i++)
 	{
@@ -319,7 +316,13 @@ void Graph::removeDuplicates() {
 
 	for (auto hit : hit_list)
 	{
-		result.insert(result.end(), hit.second.begin(), hit.second.end());
+		auto elem = hit.second.back();
+		size_t vec_size = hit.second.size();
+
+		result.push_back(elem);
+
+		for (int i = 0; i < vec_size - 1; i++)
+			delete hit.second[i];
 	}
 	
 	hyperedges = result;
