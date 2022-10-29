@@ -18,7 +18,7 @@ class Cell {
 private:
     int x = -1, y = -1;
 
-    int dir = -1;
+    bool vis = false;
     bool Ndir = false, Sdir = false, Edir = false, Wdir = false;
 
     bool target = false, source = false;
