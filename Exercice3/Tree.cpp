@@ -59,13 +59,13 @@ void Tree::growingTree() {
             auto newY = y + dirY[dir];
 
             // if new cell is valid : in the maze and unexplored
-            if (newX >= 0 && newY >= 0 && newX < width && newY < height && maze[newX][newY]->dir == -1) {
+            if (newX >= 0 && newY >= 0 && newX < width && newY < height && !maze[newX][newY]->vis) {
 
                 // set this cell as explored
-                maze[x][y]->dir = dir;
+                maze[x][y]->vis = true;
 
                 // set the new cell as explored
-                maze[newX][newY]->dir = dirOpposite[dir];
+                maze[newX][newY]->vis = true;
 
                 // update this cell to keep the direction in which it "carved" a passage in the maze
                 switch (dir) {
