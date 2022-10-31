@@ -9,57 +9,66 @@
 #include <map>
 #include <utility>
 #include <algorithm>
+#include <deque>
 
 #include "GraphElem.h"
+
+using namespace std;
 
 class Graph
 {
 public:
 
+	int greatestId;
 	GroupStrategy strat;
 
-	Graph(const std::string&, GroupStrategy);
+	Graph(const string&, GroupStrategy);
 	~Graph();
 
-	std::map<int, std::vector<int>> readEdgeFileContent(std::ifstream&);
-	void readNodeFileContent(std::ifstream&, std::map<int, std::vector<int>>&);
+	map<int, vector<int>> readEdgeFileContent(ifstream&);
+	void readNodeFileContent(ifstream&, map<int, vector<int>>&);
 
-	std::vector<Node*>& getNodes() { return nodes; };
-	std::vector<Edge*>& getEdges() { return edges; };
-	std::vector<HyperSet*>& getHyperSets() { return hypersets; };
-	std::vector<HyperEdge*>& getHyperEdges() { return hyperedges; };
+	vector<Node*>& getNodes() { return nodes; };
+	vector<Edge*>& getEdges() { return edges; };
+	vector<HyperSet*>& getHyperSets() { return hypersets; };
+	vector<HyperEdge*>& getHyperEdges() { return hyperedges; };
 
 	void createHyperSets();
 	void createHyperEdges();
 
 	void balanceGraph();
 
-private:
-	std::vector<Node*> nodes;
-	std::vector<Edge*> edges;
+	void applyAlgorithm();
 
-	std::vector<HyperSet*> hypersets;
-	std::vector<HyperEdge*> hyperedges;
+	void Indegree();
+	void PageRank();
+
+private:
+	vector<Node*> nodes;
+	vector<Edge*> edges;
+
+	vector<HyperSet*> hypersets;
+	vector<HyperEdge*> hyperedges;
 };
 
-Graph::Graph(const std::string& zone, GroupStrategy strategy = GroupStrategy::page) {
+Graph::Graph(const string& zone, GroupStrategy strategy = GroupStrategy::page) {
 
-	std::string file_str;	// file name str
+	string file_str;	// file name str
 
-	std::cout << ">> Graph initialisation\n" << std::endl;
+	cout << ">> Graph initialisation\n" << endl;
 
 	if (zone == "in") {
 
-		std::cout << "Zone: India" << std::endl;
+		cout << "Zone: India" << endl;
 		file_str = "in-2004";
 	}
 	else {
-		std::cout << "Zone: Europe" << std::endl;
+		cout << "Zone: Europe" << endl;
 		file_str = "eu-2005";
 		
 	}
 
-	std::string strat_str;
+	string strat_str;
 	switch (strategy)
 	{
 	case GroupStrategy::page:
@@ -75,33 +84,38 @@ Graph::Graph(const std::string& zone, GroupStrategy strategy = GroupStrategy::pa
 		break;
 	}
 
-	std::cout << "GroupStrategy: " + strat_str << std::endl << std::endl;
+	cout << "GroupStrategy: " + strat_str << endl << endl;
 	strat = strategy;
 
-	std::cout << ">> Graph construction\n" << std::endl;
-	std::string node_str = "resources/" + file_str + ".nodes.txt";
-	std::string edge_str = "resources/" + file_str + ".edges.txt";
+	cout << ">> Graph construction\n" << endl;
+	string node_str = "resources/" + file_str + ".nodes.txt";
+	string edge_str = "resources/" + file_str + ".edges.txt";
 
-	std::ifstream nodefile(node_str);
-	std::ifstream edgefile(edge_str);
+	ifstream nodefile(node_str);
+	ifstream edgefile(edge_str);
 
-	std::cout << "Reading " << edge_str << std::endl;
-	std::map<int, std::vector<int>> adj_map = readEdgeFileContent(edgefile);
+	cout << "Reading " << edge_str << endl;
+	map<int, vector<int>> adj_map = readEdgeFileContent(edgefile);
 
-	std::cout << "Reading " << node_str << std::endl << std::endl;
+	cout << "Reading " << node_str << endl << endl;
 	readNodeFileContent(nodefile, adj_map);
 
-	std::cout << ">> Graph links\n" << std::endl;
-	std::cout << "Creating hyper sets... ";
+	cout << ">> Graph links\n" << endl;
+	cout << "Creating hyper sets... ";
 	createHyperSets();
 
-	std::cout << "Creating hyper edges... ";
+	cout << "Creating hyper edges... ";
 	createHyperEdges();
 
-	std::cout << "Calculating weights and removing duplicate edges... ";
+	cout << "Calculating weights and removing duplicate edges... ";
 	balanceGraph();
 
-	std::cout << "Graph completed\n" << std::endl;
+	cout << "Graph completed\n" << endl;
+
+	cout << ">> Algorithms\n" << endl;
+	applyAlgorithm();
+
+	cout << "End of the program" << endl;
 }
 
 Graph::~Graph() {
@@ -119,16 +133,16 @@ Graph::~Graph() {
 		delete he;
 }
 
-std::map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) {
+map<int, vector<int>> Graph::readEdgeFileContent(ifstream& file) {
 
-	std::string line;	// line content
-	std::map<int, std::vector<int>> adj_map;
+	string line;	// line content
+	map<int, vector<int>> adj_map;
 
 	if (file.is_open()) {
 
-		while (std::getline(file, line))
+		while (getline(file, line))
 		{
-			std::stringstream ss(line);
+			stringstream ss(line);
 			int nb1, nb2;	// pattern variables
 
 			ss >> nb1 >> nb2;	// pattern declaration
@@ -151,21 +165,26 @@ std::map<int, std::vector<int>> Graph::readEdgeFileContent(std::ifstream& file) 
 	return adj_map;
 }
 
-void Graph::readNodeFileContent(std::ifstream& file, std::map<int, std::vector<int>>& adj_map) {
+void Graph::readNodeFileContent(ifstream& file, map<int, vector<int>>& adj_map) {
 
-	std::string line;
+	string line;
 
 	if (file.is_open()) {
 
-		while (std::getline(file, line))
+		while (getline(file, line))
 		{
-			std::stringstream ss(line);
-			int nb1, nb2; std::string line_url;
+			stringstream ss(line);
+			int nb1, nb2; string line_url;
 
 			ss >> nb1 >> nb2 >> line_url;  
 
-			if (ss)
+			if (ss) 
+			{
+				if (nb1 > greatestId)
+					greatestId = nb1;
+
 				nodes.push_back(new Node(nb1, nb2, line_url, adj_map[nb1]));
+			}
 		}
 
 		file.close();
@@ -174,10 +193,10 @@ void Graph::readNodeFileContent(std::ifstream& file, std::map<int, std::vector<i
 
 void Graph::createHyperSets() {
 
-	std::string content;
-	std::vector<Node*> node_list(1);
-	std::map<std::string, std::vector<Node*>> by_url_list;
-	std::regex urlRe("^.*://([^/?:]+)/?.*$");
+	string content;
+	vector<Node*> node_list(1);
+	map<string, vector<Node*>> by_url_list;
+	regex urlRe("^.*://([^/?:]+)/?.*$");
 
 	if (strat == GroupStrategy::page)
 	{
@@ -194,9 +213,9 @@ void Graph::createHyperSets() {
 
 		for (auto page : nodes) {
 
-			std::string url = page->getUrl();
+			string url = page->getUrl();
 
-			content = std::regex_replace(url, urlRe, "$1");
+			content = regex_replace(url, urlRe, "$1");
 
 			size_t pos = content.find('.');
 			content.erase(0, pos + 1);
@@ -216,9 +235,9 @@ void Graph::createHyperSets() {
 
 		for (auto page : nodes) {
 
-			std::string url = page->getUrl();
+			string url = page->getUrl();
 
-			content = std::regex_replace(url, urlRe, "$1");
+			content = regex_replace(url, urlRe, "$1");
 
 			by_url_list[content].push_back(page);
 		}
@@ -234,12 +253,12 @@ void Graph::createHyperSets() {
 
 	hypersets.shrink_to_fit();
 
-	std::cout << "Done" << std::endl;
+	cout << "Done" << endl;
 }
 
 void Graph::createHyperEdges() {
 
-	std::map<int, std::vector<HyperSet*>> target_map;
+	map<int, vector<HyperSet*>> target_map;
 
 	for (auto hyperset : hypersets)
 		for (auto node : hyperset->getSet())
@@ -258,14 +277,14 @@ void Graph::createHyperEdges() {
 		}
 	}
 
-	std::cout << "Done" << std::endl;
+	cout << "Done" << endl;
 }
 
 void Graph::balanceGraph()
 {
 	int dupliCount = 0;
-	std::map<HyperSet*, std::vector<HyperEdge*>> hit_list;
-	std::map<HyperSet*, std::vector<HyperEdge*>> orphans;
+	map<HyperSet*, vector<HyperEdge*>> hit_list;
+	map<HyperSet*, vector<HyperEdge*>> orphans;
 
 	for (int i = 0; i < hyperedges.size(); i++)
 	{
@@ -283,7 +302,7 @@ void Graph::balanceGraph()
 		}
 	}
 
-	std::vector<HyperEdge*> result;
+	vector<HyperEdge*> result;
 
 	for (auto hit : hit_list)
 	{
@@ -312,5 +331,97 @@ void Graph::balanceGraph()
 	hyperedges = result;
 	hyperedges.shrink_to_fit();
 
-	std::cout << "Done, removed " << dupliCount << " duplicates" << std::endl;
+	cout << "Done, removed " << dupliCount << " duplicates" << endl;
+}
+
+void Graph::applyAlgorithm()
+{
+	int res;
+
+	cout << "Choisir un algorithme" << endl;
+	cout << "1: Indegree   2: PageRank" << endl;
+
+	while (!(cin >> res) || (res != 1 && res != 2)) {
+
+		cin.clear();
+		cin.ignore(1000, '\n');
+		cout << "Invalide car different de 1 ou 2" << endl << "Recommencez: ";
+	}
+	cout << endl;
+
+	if (res == 1)
+		Indegree();
+	else
+		PageRank();
+}
+
+void Graph::Indegree()
+{
+	size_t node_size = nodes.size();
+	
+	map<int, int> in_degree;
+	map<int, int> id_to_ind;
+	vector<int> top_order;
+	vector<Node*>::iterator it = nodes.begin();
+
+	for (auto node : nodes)
+	{
+		if (in_degree.count(node->getId()) == 0)
+			in_degree[node->getId()] = 0;
+
+		for (auto adj_elem : node->getAdj())
+			in_degree[adj_elem]++;
+	}
+		
+	// needs to act as queue, so add to back and remove from front
+	deque<int> q;
+	
+	for (int i = 0; i < node_size; i++)
+	{
+		int curr_id = nodes[i]->getId();
+
+		id_to_ind[curr_id] = i;
+
+		if (in_degree.count(curr_id) != 0 && in_degree[curr_id] == 0)
+			q.push_back(i);
+	}
+		
+	cout << "Queue has " << q.size() << endl;
+
+	// Count of visited vertices
+	int cnt = 0;
+
+	while (!q.empty())
+	{
+		int u = q.front();
+		q.pop_front();
+
+		top_order.push_back(u);
+
+		auto adj_list = nodes[u]->getAdj();
+
+		// for (itr = adj.begin(); itr != adj.end(); itr++)
+		for (auto adj_elem : adj_list)
+			if (in_degree.count(adj_elem) != 0)
+				if (--in_degree[adj_elem] == 0)
+					q.push_back(id_to_ind[adj_elem]);
+
+		cnt++;
+	}
+
+	if (cnt != node_size) {
+		cout << "There is a cycle in the graph\n";
+		cout << "cnt " << cnt << " and " << node_size << endl;
+		return;
+	}
+
+	// Print topological order
+	for (auto top : top_order)
+		cout << top << " ";
+	cout << endl;
+}
+
+void Graph::PageRank()
+{
+
 }
