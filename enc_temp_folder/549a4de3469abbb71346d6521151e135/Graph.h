@@ -400,8 +400,14 @@ void Graph::Indegree()
 
 		for (auto adj_elem : adj_list)
 
-			if (in_degree[adj_elem] > 0 && --in_degree[adj_elem] == 0)
-				q.push_back(idmap[adj_elem]);
+			if (in_degree[adj_elem] > 0 && --in_degree[adj_elem] == 0) {
+				
+				int target = idmap[adj_elem];
+				auto it = find(top_order.begin(), top_order.end(), target);
+				
+				if (it != top_order.end() && target != u)
+					q.push_back(target);
+			}
 
 
 		cnt++;
