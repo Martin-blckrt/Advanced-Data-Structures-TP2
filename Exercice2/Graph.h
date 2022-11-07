@@ -360,20 +360,15 @@ void Graph::Indegree()
 	size_t node_size = nodes.size();
 	
 	map<int, int> in_degree;
-	map<int, int> idmap;
 	vector<int> top_order;
 
-	for (auto node : nodes)
-	{
-		int node_id = node->getId();
-
-		if (in_degree.count(node_id) == 0)
-			in_degree[node_id] = 0;
-
-		for (auto adj_elem : node->getAdj())
-			in_degree[adj_elem]++;
+	for (auto edge : hyperedges) {
+		in_degree[edge->getDestination()]++;
+		if (edge->getWeight() == 0)
+			cout << "yeya" << endl;
 	}
 		
+	
 	// needs to act as queue, so add to back and remove from front
 	deque<int> q;
 	
@@ -381,10 +376,10 @@ void Graph::Indegree()
 	{
 		int curr_id = nodes[i]->getId();
 
-		idmap[curr_id] = i;
-
-		if (in_degree[curr_id] == 0)
-			q.push_back(i);
+		if (in_degree.count(curr_id) == 0)
+			in_degree[curr_id] = 0;
+		
+		q.push_back(curr_id);
 	}
 		
 	// Count of visited vertices
@@ -396,27 +391,19 @@ void Graph::Indegree()
 		q.pop_front();
 		top_order.push_back(u);
 
-		auto adj_list = nodes[u]->getAdj();
-
-		for (auto adj_elem : adj_list)
-
-			if (in_degree[adj_elem] > 0 && --in_degree[adj_elem] == 0)
-				q.push_back(idmap[adj_elem]);
-
+		// Do stuff
 
 		cnt++;
 	}
 
 	if (cnt != node_size) {
 		cout << "There is a cycle in the graph\n";
-		cout << "cnt " << cnt << " and " << node_size << endl;
-
 		return;
 	}
 
 	// Print topological order
-	for (int i = 0; i < top_order.size(); i++)
-		cout << idmap[i] << " ";
+	for (auto top : top_order)
+		cout << top << " ";
 	cout << endl;
 }
 
