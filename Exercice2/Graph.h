@@ -382,7 +382,7 @@ void Graph::Indegree()
 		q.push_back(curr_id);
 	}
 		
-	// Count of visited vertices
+	// Count of visited sets
 	int cnt = 0;
 
 	while (!q.empty())
