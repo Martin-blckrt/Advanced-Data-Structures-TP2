@@ -45,13 +45,13 @@ private:
 	int dest;
 };
 
-class HyperSet
+class Bloc
 {
 public:
 
-	explicit HyperSet(std::vector<Node*>& node_set) : set(node_set){};
+	explicit Bloc(std::vector<Node*>& node_set) : set(node_set){};
 
-	bool setEmpty() { return set.empty(); };
+	bool blocEmpty() { return set.empty(); };
 
 	bool contains(int target_id) {
 
@@ -97,10 +97,10 @@ class HyperEdge
 {
 public:
 
-	HyperEdge(HyperSet* src, int dst, size_t w = 0) :
+	HyperEdge(Bloc* src, int dst, size_t w = 0) :
 		srcSet(src), destNode(dst), weight(w) {};
 
-	HyperSet* getSource() { return srcSet; };
+	Bloc* getSource() { return srcSet; };
 	int getDestination() const { return destNode; };
 	size_t getWeight() const { return weight; };
 
@@ -114,7 +114,7 @@ public:
 	};
 
 private:
-	HyperSet* srcSet;
+	Bloc* srcSet;
 	int destNode;
 
 	size_t weight;

@@ -21,6 +21,7 @@ public:
 
 	int greatestId;
 	GroupStrategy strat;
+	map<int, Bloc*> idmap;
 
 	Graph(const string&, GroupStrategy);
 	~Graph();
@@ -30,10 +31,10 @@ public:
 
 	vector<Node*>& getNodes() { return nodes; };
 	vector<Edge*>& getEdges() { return edges; };
-	vector<HyperSet*>& getHyperSets() { return hypersets; };
+	vector<Bloc*>& getBlocs() { return blocs; };
 	vector<HyperEdge*>& getHyperEdges() { return hyperedges; };
 
-	void createHyperSets();
+	void createBlocs();
 	void createHyperEdges();
 
 	void balanceGraph();
@@ -47,7 +48,7 @@ private:
 	vector<Node*> nodes;
 	vector<Edge*> edges;
 
-	vector<HyperSet*> hypersets;
+	vector<Bloc*> blocs;
 	vector<HyperEdge*> hyperedges;
 };
 
@@ -102,13 +103,13 @@ Graph::Graph(const string& zone, GroupStrategy strategy = GroupStrategy::page) {
 
 	cout << ">> Graph links\n" << endl;
 	cout << "Creating hyper sets... ";
-	createHyperSets();
+	createBlocs();
 
 	cout << "Creating hyper edges... ";
 	createHyperEdges();
 
 	cout << "Calculating weights and removing duplicate edges... ";
-	balanceGraph();
+	//balanceGraph();
 
 	cout << "Graph completed\n" << endl;
 
@@ -120,17 +121,17 @@ Graph::Graph(const string& zone, GroupStrategy strategy = GroupStrategy::page) {
 
 Graph::~Graph() {
 
-	for (auto n : nodes)
+	for (auto& n : nodes)
 		delete n;
 
-	for (auto e : edges)
+	for (auto& e : edges)
 		delete e;
 
-	for (auto hs : hypersets)
-		delete hs;
+	for (auto& b : blocs)
+		delete b;
 
-	for (auto he : hyperedges)
-		delete he;
+	for (auto& h : hyperedges)
+		delete h;
 }
 
 map<int, vector<int>> Graph::readEdgeFileContent(ifstream& file) {
@@ -191,7 +192,7 @@ void Graph::readNodeFileContent(ifstream& file, map<int, vector<int>>& adj_map) 
 	}
 }
 
-void Graph::createHyperSets() {
+void Graph::createBlocs() {
 
 	string content;
 	vector<Node*> node_list(1);
@@ -200,13 +201,15 @@ void Graph::createHyperSets() {
 
 	if (strat == GroupStrategy::page)
 	{
-		hypersets.reserve(nodes.size());
+		blocs.reserve(nodes.size());
 
 		for (auto page : nodes) {
 
 			node_list = { page };
-			auto* h = new HyperSet(node_list);
-			hypersets.push_back(h);
+			auto* h = new Bloc(node_list);
+			blocs.push_back(h);
+
+			idmap[page->getId()] = h;
 		}
 
 	} else if(strat == GroupStrategy::domain) {
@@ -223,12 +226,15 @@ void Graph::createHyperSets() {
 			by_url_list[content].push_back(page);
 		}
 
-		hypersets.reserve(by_url_list.size());
+		blocs.reserve(by_url_list.size());
 
 		for (auto url_list : by_url_list)
 		{
-			auto* h = new HyperSet(url_list.second);
-			hypersets.push_back(h);
+			auto* h = new Bloc(url_list.second);
+			blocs.push_back(h);
+
+			for(auto& nodeid : url_list.second)
+				idmap[nodeid->getId()] = h;
 		}
 	}
 	else if (strat == GroupStrategy::host) {
@@ -242,28 +248,31 @@ void Graph::createHyperSets() {
 			by_url_list[content].push_back(page);
 		}
 
-		hypersets.reserve(by_url_list.size());
+		blocs.reserve(by_url_list.size());
 
 		for (auto url_list : by_url_list)
 		{
-			auto* h = new HyperSet(url_list.second);
-			hypersets.push_back(h);
+			auto* h = new Bloc(url_list.second);
+			blocs.push_back(h);
+
+			for (auto& nodeid : url_list.second)
+				idmap[nodeid->getId()] = h;
 		}
 	}
 
-	hypersets.shrink_to_fit();
+	blocs.shrink_to_fit();
 
 	cout << "Done" << endl;
 }
 
 void Graph::createHyperEdges() {
 
-	map<int, vector<HyperSet*>> target_map;
+	map<int, vector<Bloc*>> target_map;
 
-	for (auto hyperset : hypersets)
-		for (auto node : hyperset->getSet())
+	for (auto bloc : blocs)
+		for (auto node : bloc->getSet())
 			for (auto dest_id : node->getAdj())
-				target_map[dest_id].push_back(hyperset);
+				target_map[dest_id].push_back(bloc);
 
 
 	hyperedges.reserve(target_map.size());
@@ -283,8 +292,8 @@ void Graph::createHyperEdges() {
 void Graph::balanceGraph()
 {
 	int dupliCount = 0;
-	map<HyperSet*, vector<HyperEdge*>> hit_list;
-	map<HyperSet*, vector<HyperEdge*>> orphans;
+	map<Bloc*, vector<HyperEdge*>> hit_list;
+	map<Bloc*, vector<HyperEdge*>> orphans;
 
 	for (int i = 0; i < hyperedges.size(); i++)
 	{
@@ -355,49 +364,64 @@ void Graph::applyAlgorithm()
 		PageRank();
 }
 
+
 void Graph::Indegree()
 {
-	size_t node_size = nodes.size();
+	size_t bloc_size = blocs.size();
 	
-	map<int, int> in_degree;
-	vector<int> top_order;
+	map<Bloc*, int> in_degree;
+	map<Bloc*, vector<HyperEdge*>> edge_to_set;
 
-	for (auto edge : hyperedges) {
-		in_degree[edge->getDestination()]++;
-		if (edge->getWeight() == 0)
-			cout << "yeya" << endl;
-	}
-		
-	
-	// needs to act as queue, so add to back and remove from front
-	deque<int> q;
-	
-	for (int i = 0; i < node_size; i++)
+	vector<Bloc*> top_order;
+
+	for (auto& edge : hyperedges)
 	{
-		int curr_id = nodes[i]->getId();
+		auto src = edge->getSource();
+		int dest = edge->getDestination();
 
-		if (in_degree.count(curr_id) == 0)
-			in_degree[curr_id] = 0;
-		
-		q.push_back(curr_id);
+		if (in_degree.count(src) == 0)
+			in_degree[src] = 0;
+
+		edge_to_set[idmap[dest]].push_back(edge);
+		in_degree[idmap[dest]]++;
 	}
+		
+	// needs to act as queue, so add to back and remove from front
+	deque<Bloc*> q;
+	
+	for (auto& inset : in_degree)
+		if (inset.second == 0)
+			q.push_back(inset.first);
 		
 	// Count of visited sets
 	int cnt = 0;
 
 	while (!q.empty())
 	{
-		int u = q.front();
+		auto u = q.front();
 		q.pop_front();
+
 		top_order.push_back(u);
+
+		auto related_edges = edge_to_set[u];
+
+		for (auto& red : related_edges) {
+			
+			auto src = red->getSource();
+
+			if (--in_degree[src] == 0)
+				q.push_back(src);
+		}
+
 
 		// Do stuff
 
 		cnt++;
 	}
 
-	if (cnt != node_size) {
+	if (cnt != bloc_size) {
 		cout << "There is a cycle in the graph\n";
+		cout << "visited " << cnt << " out of " << bloc_size << endl;
 		return;
 	}
 
