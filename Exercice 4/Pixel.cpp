@@ -3,10 +3,11 @@
 
 using namespace std;
 
-Pixel::Pixel() : red(0), green(0), blue(0) {}
-Pixel::Pixel(double r, double g, double b) : red(r), green(g), blue(b) {}
-Pixel::~Pixel(){}
+Pixel::Pixel() : red(0), green(0), blue(0) {} // Constructeur vide
+Pixel::Pixel(double r, double g, double b) : red(r), green(g), blue(b) {} // Constructeur paramétré
+Pixel::~Pixel(){} // Destructeur
 
+// Getters
 double Pixel::getRed() const
 {
 	return red;
@@ -20,6 +21,7 @@ double Pixel::getBlue() const
 	return blue;
 }
 
+// Setters
 void Pixel::setRed(double r)
 {
 	red = r;
