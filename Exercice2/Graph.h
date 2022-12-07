@@ -113,8 +113,8 @@ Graph::Graph(const string &zone, GroupStrategy strategy = GroupStrategy::page) {
     cout << "Creating hyper edges... ";
     createHyperEdges();
 
-    cout << "Calculating weights and removing duplicate edges... ";
-    //balanceGraph();
+	cout << "Calculating weights and removing duplicate edges... ";
+	balanceGraph();
 
     cout << "Graph completed\n" << endl;
 
@@ -351,34 +351,39 @@ void Graph::applyAlgorithm() {
 }
 
 
-void Graph::Indegree() {
-    size_t bloc_size = blocs.size();
+void Graph::Indegree()
+{	
+	map<int, int> in_degree;
+	map<Bloc*, vector<HyperEdge*>> edge_to_set;
 
-    map<Bloc *, int> in_degree;
-    map<Bloc *, vector<HyperEdge *>> edge_to_set;
+	vector<int> top_order;
 
-    vector<Bloc *> top_order;
+	for (auto& node : nodes)
+		in_degree[node->getId()] = 0;
 
-    for (auto &edge: hyperedges) {
-        auto src = edge->getSource();
-        int dest = edge->getDestination();
+	for (auto& edge : hyperedges)
+	{
+		int dest = edge->getDestination();
 
-        if (in_degree.count(src) == 0)
-            in_degree[src] = 0;
+		if (idmap.count(dest) > 0)
+			edge_to_set[idmap[dest]].push_back(edge);
 
-        edge_to_set[idmap[dest]].push_back(edge);
-        in_degree[idmap[dest]]++;
-    }
+		if (in_degree.count(dest) > 0)
+			in_degree[dest]++;
+	}
+		
+	// needs to act as queue, so add to back and remove from front
+	deque<int> q;
+	
+	for (auto& inset : in_degree)
+		if (inset.second == 0)
+			q.push_back(inset.first);
+		
+	for (auto ii : q)
+		cout << ii << endl;
 
-    // needs to act as queue, so add to back and remove from front
-    deque<Bloc *> q;
-
-    for (auto &inset: in_degree)
-        if (inset.second == 0)
-            q.push_back(inset.first);
-
-    // Count of visited sets
-    int cnt = 0;
+	// Count of visited sets
+	int cnt = 0;
 
     while (!q.empty()) {
         auto u = q.front();
@@ -386,32 +391,40 @@ void Graph::Indegree() {
 
         top_order.push_back(u);
 
-        auto related_edges = edge_to_set[u];
+		auto related_edges = edge_to_set[idmap[u]];
 
-        for (auto &red: related_edges) {
+		for (auto& red : related_edges) {
 
-            auto src = red->getSource();
+			auto ds = red->getDestination();
 
-            if (--in_degree[src] == 0)
-                q.push_back(src);
-        }
+			if (--in_degree[ds] == 0)
+				q.push_back(ds);
+		}
 
-
-        // Do stuff
+		// Do stuff
 
         cnt++;
     }
 
-    if (cnt != bloc_size) {
-        cout << "There is a cycle in the graph\n";
-        cout << "visited " << cnt << " out of " << bloc_size << endl;
-        return;
-    }
+	if (cnt != nodes.size()) {
+		cout << "There is a cycle in the graph\n";
+		cout << "visited " << cnt << " out of " << nodes.size() << endl;
+		return;
+	}
 
-    // Print topological order
-    for (auto top: top_order)
-        cout << top << " ";
-    cout << endl;
+	int indent = 0;
+
+	// Print topological order
+	for (auto top : top_order) {
+		cout << top << " ";
+		
+		indent++;
+		
+		if (indent % 10 == 0)
+			cout << endl;
+
+	}
+	cout << endl;
 }
 
 void Graph::PageRank() {
