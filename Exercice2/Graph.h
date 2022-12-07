@@ -443,6 +443,11 @@ void Graph::PageRank() {
     for (auto edge: hyperedges)
         outlinks[edge->getSource()] += 1;
 
+    // make multi-map that links blocs to pages, see 1st way down below
+    multimap<int, Bloc *> hyperMap;
+    for (auto edge: hyperedges)
+        hyperMap.insert({edge->getDestination(), edge->getSource()});
+
     // map a bloc and it's rank
     map<Bloc *, double> blocRank;
 
@@ -470,13 +475,27 @@ void Graph::PageRank() {
             // sum of rank/outlinks for a page v
             double sum_rank_outlink = 0;
 
-            // we need to get each bloc pointing to page v so we iterate in hyperedges
+            /* We now need to get each bloc pointing to page v
+             * 1st WAY
+             * with the hypermap (initialized at the beginning), get all Blocs* linked to the key V.getId() (= the page)
+
+             typedef multimap<int, Bloc*>::iterator MMAPIterator;
+            pair<MMAPIterator, MMAPIterator> result = hyperMap.equal_range(v->getId());
+            // iterate over the range
+            for (MMAPIterator it = result.first; it != result.second; it++)
+                sum_rank_outlink += blocRank[it->second] / outlinks[it->second];
+
+             * 2nd WAY
+             * iterate over all hyperedges, if the destination is our page, do our computation
+             * this way is obviously not as good but works
+
             for (auto edge: hyperedges) {
 
                 // if a bloc points to page v, update the rank/outlink sum
                 if (edge->getDestination() == v->getId())
                     sum_rank_outlink += blocRank[edge->getSource()] / outlinks[edge->getSource()];
             }
+            */
 
             // update the rank of page v
             rank[v->getId()] = d / N + (1 - d) * (sum_rank_outlink + sum_noOutlink_nbBlocs);
@@ -487,12 +506,11 @@ void Graph::PageRank() {
     for (auto itr = rank.begin(); itr != rank.end(); ++itr)
         pairs.push_back(*itr);
 
-    sort(pairs.begin(), pairs.end(), [=](std::pair<int, int>& a, std::pair<int, int>& b)
-         {
+    sort(pairs.begin(), pairs.end(), [=](std::pair<int, int> &a, std::pair<int, int> &b) {
              return a.second < b.second;
          }
     );
 
-    for (auto page : pairs)
+    for (auto page: pairs)
         cout << "Page " << page.first << " has a score of " << page.second << endl;
 }
