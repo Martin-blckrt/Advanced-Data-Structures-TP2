@@ -457,14 +457,18 @@ void Graph::PageRank() {
             blocRank[b] = r;
         }
 
+        // sum of no outlink/nb_blocs for a page v
+        double sum_noOutlink_nbBlocs = 0;
+        // get all blocs without outlinks and update the no outlink/nb_blocs sum
+        for (auto b: outlinks)
+            if (b.second == 0)
+                sum_noOutlink_nbBlocs += blocRank[b.first] / blocs.size();
+
         // for all pages
         for (auto v: nodes) {
 
             // sum of rank/outlinks for a page v
             double sum_rank_outlink = 0;
-
-            // sum of no outlink/nb_blocs for a page v
-            double sum_noOutlink_nbBlocs = 0;
 
             // we need to get each bloc pointing to page v so we iterate in hyperedges
             for (auto edge: hyperedges) {
@@ -473,11 +477,6 @@ void Graph::PageRank() {
                 if (edge->getDestination() == v->getId())
                     sum_rank_outlink += blocRank[edge->getSource()] / outlinks[edge->getSource()];
             }
-
-            // get all blocs without outlinks and update the no outlink/nb_blocs sum
-            for (auto b: outlinks)
-                if (b.second == 0)
-                    sum_noOutlink_nbBlocs += blocRank[b.first] / blocs.size();
 
             // update the rank of page v
             rank[v->getId()] = d / N + (1 - d) * (sum_rank_outlink + sum_noOutlink_nbBlocs);
