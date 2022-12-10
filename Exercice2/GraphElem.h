@@ -49,7 +49,7 @@ class Bloc
 {
 public:
 
-	explicit Bloc(std::vector<Node*>& node_set) : set(node_set){};
+	explicit Bloc(int bid, std::vector<Node*>& node_set) : bloc_id(bid), set(node_set){};
 
 	bool blocEmpty() { return set.empty(); };
 
@@ -88,8 +88,10 @@ public:
 	};
 
 	std::vector<Node*> getSet() { return set; };
+	int getBlocId() { return bloc_id; };
 	
 private:
+	int bloc_id;
 	std::vector<Node*> set;
 };
 

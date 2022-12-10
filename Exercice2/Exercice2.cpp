@@ -11,7 +11,7 @@ int main()
 {
 	cout << "DEVOIR 2 - Exercice 2" << endl;
 
-	std::cout << "\n>> User choices" << std::endl;
+	std::cout << "\n>> Choix utilisateur" << std::endl;
 
     // Choose 'eu' or 'in' and group strategy 
     pair<string, GroupStrategy> choices = getInput();
@@ -27,7 +27,7 @@ pair<string, GroupStrategy> getInput() {
 	pair<string, GroupStrategy> ans;
 	
 	cout << endl << "Choisir une zone" << endl;
-	cout << "1: Europe   2: India" << endl;
+	cout << "1: Europe   2: Inde" << endl;
 	
 	while (!(cin >> res) || (res != 1 && res != 2)) {
 

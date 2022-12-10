@@ -63,7 +63,7 @@ Graph::Graph(const string &zone, GroupStrategy strategy = GroupStrategy::page) {
 
     string file_str;    // file name str
 
-    cout << ">> Graph initialisation\n" << endl;
+    cout << ">> Initialisation du graphe\n" << endl;
 
     if (zone == "in") {
 
@@ -78,50 +78,50 @@ Graph::Graph(const string &zone, GroupStrategy strategy = GroupStrategy::page) {
     string strat_str;
     switch (strategy) {
         case GroupStrategy::page:
-            strat_str = "By page";
+            strat_str = "par page";
             break;
         case GroupStrategy::domain:
-            strat_str = "By domain";
+            strat_str = "par domaine";
             break;
         case GroupStrategy::host:
-            strat_str = "By host";
+            strat_str = "par hote";
             break;
         default:
             break;
     }
 
-    cout << "GroupStrategy: " + strat_str << endl << endl;
+    cout << "Strategie de regroupement: " + strat_str << endl << endl;
     strat = strategy;
 
-    cout << ">> Graph construction\n" << endl;
+    cout << ">> Construction du graphe\n" << endl;
     string node_str = "resources/" + file_str + ".nodes.txt";
     string edge_str = "resources/" + file_str + ".edges.txt";
 
     ifstream nodefile(node_str);
     ifstream edgefile(edge_str);
 
-    cout << "Reading " << edge_str << endl;
+    cout << "Lecture du fichier " << edge_str << endl;
     map<int, vector<int>> adj_map = readEdgeFileContent(edgefile);
 
-    cout << "Reading " << node_str << endl << endl;
+    cout << "Lecture du fichier " << node_str << endl << endl;
     readNodeFileContent(nodefile, adj_map);
 
-    cout << ">> Graph links\n" << endl;
-    cout << "Creating hyper sets... ";
+    cout << ">> Connexions et regroupements\n" << endl;
+    cout << "Creation des blocs... ";
     createBlocs();
 
-    cout << "Creating hyper edges... ";
+    cout << "Creations des aretes... ";
     createHyperEdges();
 
-	cout << "Calculating weights and removing duplicate edges... ";
+	cout << "Suppression des doubles et calcul des poids";
 	balanceGraph();
 
-    cout << "Graph completed\n" << endl;
+    cout << "Construction terminee\n" << endl;
 
-    cout << ">> Algorithms\n" << endl;
+    cout << ">> Algorithmes\n" << endl;
     applyAlgorithm();
 
-    cout << "End of the program" << endl;
+    cout << endl << "Fin du programme" << endl;
 }
 
 Graph::~Graph() {
@@ -199,6 +199,7 @@ void Graph::createBlocs() {
     vector<Node *> node_list(1);
     map<string, vector<Node *>> by_url_list;
     regex urlRe("^.*://([^/?:]+)/?.*$");
+    int id = 0;
 
     if (strat == GroupStrategy::page) {
         blocs.reserve(nodes.size());
@@ -206,10 +207,11 @@ void Graph::createBlocs() {
         for (auto page: nodes) {
 
             node_list = {page};
-            auto *h = new Bloc(node_list);
+            auto *h = new Bloc(id, node_list);
             blocs.push_back(h);
 
             idmap[page->getId()] = h;
+            id++;
         }
 
     } else if (strat == GroupStrategy::domain) {
@@ -229,9 +231,10 @@ void Graph::createBlocs() {
         blocs.reserve(by_url_list.size());
 
         for (auto url_list: by_url_list) {
-            auto *h = new Bloc(url_list.second);
+            auto *h = new Bloc(id, url_list.second);
             blocs.push_back(h);
 
+            id++;
             for (auto &nodeid: url_list.second)
                 idmap[nodeid->getId()] = h;
         }
@@ -249,8 +252,9 @@ void Graph::createBlocs() {
         blocs.reserve(by_url_list.size());
 
         for (auto url_list: by_url_list) {
-            auto *h = new Bloc(url_list.second);
+            auto *h = new Bloc(id, url_list.second);
             blocs.push_back(h);
+            id++;
 
             for (auto &nodeid: url_list.second)
                 idmap[nodeid->getId()] = h;
@@ -259,7 +263,7 @@ void Graph::createBlocs() {
 
     blocs.shrink_to_fit();
 
-    cout << "Done" << endl;
+    cout << "Termine" << endl;
 }
 
 void Graph::createHyperEdges() {
@@ -276,12 +280,15 @@ void Graph::createHyperEdges() {
 
     for (const auto &targ: target_map) {
         for (auto hs: targ.second) {
-            auto *hedge = new HyperEdge(hs, targ.first);
-            hyperedges.push_back(hedge);
+            if (idmap.count(targ.first) > 0)
+            {
+                auto* hedge = new HyperEdge(hs, targ.first);
+                hyperedges.push_back(hedge);
+            }
         }
     }
 
-    cout << "Done" << endl;
+    cout << "Termine" << endl;
 }
 
 void Graph::balanceGraph() {
@@ -327,13 +334,15 @@ void Graph::balanceGraph() {
     hyperedges = result;
     hyperedges.shrink_to_fit();
 
-    cout << "Done, removed " << dupliCount << " duplicates" << endl;
+    cout << "Termine, " << dupliCount << " doublons supprimes" << endl;
 }
 
 void Graph::applyAlgorithm() {
     int res;
 
     cout << "Choisir un algorithme" << endl;
+    cout << "Note : la strategie par page nest pas compatible avec Indegree" << endl;
+
     cout << "1: Indegree   2: PageRank" << endl;
 
     while (!(cin >> res) || (res != 1 && res != 2)) {
@@ -358,8 +367,8 @@ void Graph::Indegree()
 
 	vector<int> top_order;
 
-	for (auto& node : nodes)
-		in_degree[node->getId()] = 0;
+	for (auto& bloc : blocs)
+		in_degree[bloc->getBlocId()] = 0;
 
 	for (auto& edge : hyperedges)
 	{
@@ -369,7 +378,7 @@ void Graph::Indegree()
 			edge_to_set[idmap[dest]].push_back(edge);
 
 		if (in_degree.count(dest) > 0)
-			in_degree[dest]++;
+			in_degree[idmap[dest]->getBlocId()]++;
 	}
 		
 	// needs to act as queue, so add to back and remove from front
@@ -378,9 +387,7 @@ void Graph::Indegree()
 	for (auto& inset : in_degree)
 		if (inset.second == 0)
 			q.push_back(inset.first);
-		
-	for (auto ii : q)
-		cout << ii << endl;
+
 
 	// Count of visited sets
 	int cnt = 0;
@@ -397,8 +404,8 @@ void Graph::Indegree()
 
 			auto ds = red->getDestination();
 
-			if (--in_degree[ds] == 0)
-				q.push_back(ds);
+			if (--in_degree[idmap[ds]->getBlocId()] == 0)
+				q.push_back(idmap[ds]->getBlocId());
 		}
 
 		// Do stuff
@@ -406,9 +413,9 @@ void Graph::Indegree()
         cnt++;
     }
 
-	if (cnt != nodes.size()) {
-		cout << "There is a cycle in the graph\n";
-		cout << "visited " << cnt << " out of " << nodes.size() << endl;
+	if (cnt != blocs.size()) {
+		cout << "Cycle detecte, fin de l algorithm\n";
+		cout << cnt << " visites sur " << blocs.size() << endl;
 		return;
 	}
 
