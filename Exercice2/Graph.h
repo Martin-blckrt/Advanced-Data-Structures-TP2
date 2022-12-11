@@ -467,8 +467,33 @@ void Graph::PageRank() {
 
     // make multi-map that links blocs to pages, see 1st way down below
     multimap<int, Bloc *> hyperMap;
-    for (auto edge : hyperedges)
-        hyperMap.insert({ edge->getDestination(), edge->getSource() });
+    map<int, vector<Bloc*>> hitmap;
+
+    for (auto edge : hyperedges) {
+        
+        auto dest = edge->getDestination();
+        auto src = edge->getSource();
+
+        if (hitmap.count(dest) == 0) {
+
+            hitmap[dest] = vector<Bloc*>({ src });
+            hyperMap.insert({ dest, src });
+        }
+        else {
+            bool found = false;
+
+            for (auto hit : hitmap[dest])
+                if (hit == src)
+                    found = true;
+
+            if (!found)
+            {
+                hitmap[dest].push_back(src);
+                hyperMap.insert({ dest, src });
+            }
+        }
+        
+    }
         
 
     // map a bloc and it's rank
