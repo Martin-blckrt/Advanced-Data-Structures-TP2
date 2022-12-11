@@ -452,21 +452,24 @@ void Graph::PageRank() {
 
     // initialize the rank of each page
     for (auto v: nodes)
-        rank[v->getId()] = 1 / N;
+        rank[v->getId()] = 1 / (double)N;
 
     // map a bloc and the number of outlinks it has
     map<Bloc *, int> outlinks;
+
     // initialize map
     for (auto bloc: blocs)
         outlinks[bloc] = 0;
+
     // update it
     for (auto edge: hyperedges)
         outlinks[edge->getSource()] += 1;
 
     // make multi-map that links blocs to pages, see 1st way down below
     multimap<int, Bloc *> hyperMap;
-    for (auto edge: hyperedges)
-        hyperMap.insert({edge->getDestination(), edge->getSource()});
+    for (auto edge : hyperedges)
+        hyperMap.insert({ edge->getDestination(), edge->getSource() });
+        
 
     // map a bloc and it's rank
     map<Bloc *, double> blocRank;
@@ -475,58 +478,46 @@ void Graph::PageRank() {
 
         // update the bloc ranks at each iteration
         for (auto b: blocs) {
-            double r = 0;
+            double r = 0.0;
             for (auto p: b->getSet())
                 r += rank[p->getId()];
-            r = r / b->getSet().size();
+            r = (double)r / b->getSet().size();
             blocRank[b] = r;
         }
 
         // sum of no outlink/nb_blocs for a page v
-        double sum_noOutlink_nbBlocs = 0;
+        double sum_noOutlink_nbBlocs = 0.0;
         // get all blocs without outlinks and update the no outlink/nb_blocs sum
         for (auto b: outlinks)
             if (b.second == 0)
-                sum_noOutlink_nbBlocs += blocRank[b.first] / blocs.size();
+                sum_noOutlink_nbBlocs += (double)blocRank[b.first] / blocs.size();
 
         // for all pages
         for (auto v: nodes) {
 
             // sum of rank/outlinks for a page v
-            double sum_rank_outlink = 0;
+            double sum_rank_outlink = 0.0;
 
             // We now need to get each bloc pointing to page v
             // 1st WAY
             // with the hypermap (initialized at the beginning), get all Blocs* linked to the key V.getId() (= the page)
 
-             typedef multimap<int, Bloc*>::iterator MMAPIterator;
+            typedef multimap<int, Bloc*>::iterator MMAPIterator;
             pair<MMAPIterator, MMAPIterator> result = hyperMap.equal_range(v->getId());
             // iterate over the range
             for (MMAPIterator it = result.first; it != result.second; it++)
-                sum_rank_outlink += blocRank[it->second] / outlinks[it->second];
-            /*
-             * 2nd WAY
-             * iterate over all hyperedges, if the destination is our page, do our computation
-             * this way is obviously not as good but works
-             
-            for (auto edge: hyperedges) {
-
-                // if a bloc points to page v, update the rank/outlink sum
-                if (edge->getDestination() == v->getId())
-                    sum_rank_outlink += blocRank[edge->getSource()] / outlinks[edge->getSource()];
-            }
-            */
+                sum_rank_outlink += (double)blocRank[it->second] / outlinks[it->second];
 
             // update the rank of page v
-            rank[v->getId()] = d / N + (1 - d) * (sum_rank_outlink + sum_noOutlink_nbBlocs);
+            rank[v->getId()] = ((double)d / (N + (1 - d))) * (sum_rank_outlink + sum_noOutlink_nbBlocs);
         }
         n--;
     }
-    vector<pair<int, int>> pairs;
+    vector<pair<int, double>> pairs;
     for (auto itr = rank.begin(); itr != rank.end(); ++itr)
         pairs.push_back(*itr);
 
-    sort(pairs.begin(), pairs.end(), [=](std::pair<int, int> &a, std::pair<int, int> &b) {
+    sort(pairs.begin(), pairs.end(), [=](std::pair<int, double> &a, std::pair<int, double> &b) {
              return a.second < b.second;
          }
     );
