@@ -113,7 +113,7 @@ Graph::Graph(const string &zone, GroupStrategy strategy = GroupStrategy::page) {
     cout << "Creations des aretes... ";
     createHyperEdges();
 
-	cout << "Suppression des doubles et calcul des poids";
+	cout << "Suppression des doubles et calcul des poids" << endl;
 	balanceGraph();
 
     cout << "Construction terminee\n" << endl;
@@ -414,7 +414,7 @@ void Graph::Indegree()
     }
 
 	if (cnt != blocs.size()) {
-		cout << "Cycle detecte, fin de l algorithm\n";
+		cout << "Cycle detecte, fin de l algorithme\n";
 		cout << cnt << " visites sur " << blocs.size() << endl;
 		return;
 	}
