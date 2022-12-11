@@ -427,7 +427,7 @@ void Graph::Indegree()
 		
 		indent++;
 		
-		if (indent % 10 == 0)
+		if (indent % 15 == 0)
 			cout << endl;
 
 	}
@@ -495,20 +495,20 @@ void Graph::PageRank() {
             // sum of rank/outlinks for a page v
             double sum_rank_outlink = 0;
 
-            /* We now need to get each bloc pointing to page v
-             * 1st WAY
-             * with the hypermap (initialized at the beginning), get all Blocs* linked to the key V.getId() (= the page)
+            // We now need to get each bloc pointing to page v
+            // 1st WAY
+            // with the hypermap (initialized at the beginning), get all Blocs* linked to the key V.getId() (= the page)
 
              typedef multimap<int, Bloc*>::iterator MMAPIterator;
             pair<MMAPIterator, MMAPIterator> result = hyperMap.equal_range(v->getId());
             // iterate over the range
             for (MMAPIterator it = result.first; it != result.second; it++)
                 sum_rank_outlink += blocRank[it->second] / outlinks[it->second];
-
+            /*
              * 2nd WAY
              * iterate over all hyperedges, if the destination is our page, do our computation
              * this way is obviously not as good but works
-
+             
             for (auto edge: hyperedges) {
 
                 // if a bloc points to page v, update the rank/outlink sum
