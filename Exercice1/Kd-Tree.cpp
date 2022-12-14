@@ -8,11 +8,11 @@ using namespace std;
 
 class Point {
 public:
-    char* nom;
+    const char* nom;
 	int x;
     int y;
 
-	Point(char* nomP,int pointX,int pointY) : nom(nomP), x(pointX), y(pointY) {}
+	Point(const char* nomP,int pointX,int pointY) : nom(nomP), x(pointX), y(pointY) {}
 
 };
 
