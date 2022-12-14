@@ -137,35 +137,30 @@ KdNode* KdTree::supprimerNoeud(KdNode* nodeS){
 
 
 KdNode* KdTree::_supprimerNoeud(KdNode* ActualNode,KdNode* nodeS){
-    // Given point is not present
+    // Point actuel existant
     if (ActualNode == nullptr){
         return nullptr;
     }    
-    // Find dimension of current node
+    // trouver la coordonnées que l'on compare
     int cd = ActualNode->hauteur % 2;
     
-    // If the point to be deleted is present at root
-    if(nodeS == nullptr){
-        printf("test4\n");
-    }
     if (ActualNode->p->x == nodeS->p->x && ActualNode->p->y == nodeS->p->y){
-        //printf("test4\n");
-        // 2.b) If right child is not NULL
+        // si l'enfant est non null
         if (ActualNode->droit != nullptr){
             
-            // Find minimum of root's dimension in right subtree
+            // trouver le noeud minimum dans le sous-arbre droit
             KdNode *meilleureNode = _bestNodeToReplace(ActualNode->droit, cd);
   
-            // Copy the minimum to root
+            // on copie le minimum
             ActualNode->p = meilleureNode->p;
   
-            // Recursively delete the minimum
+            // On supprime le noeud récursivement
             ActualNode->droit = _supprimerNoeud(ActualNode->droit, meilleureNode);
-        } else if (ActualNode->gauche != nullptr) { // same as above
+        } else if (ActualNode->gauche != nullptr) {
             KdNode *meilleureNode = _bestNodeToReplace(ActualNode->gauche, cd);
             ActualNode->p = meilleureNode->p;
             ActualNode->droit = _supprimerNoeud(ActualNode->gauche, meilleureNode);
-        } else {// If node to be deleted is leaf node
+        } else {// Si le noeud à supprimer est une feuille 
             nbelem--;
             delete ActualNode;
             return nullptr;
@@ -175,8 +170,7 @@ KdNode* KdTree::_supprimerNoeud(KdNode* ActualNode,KdNode* nodeS){
         
     }
     
-    // 2) If current node doesn't contain point, search downward
-    //printf("%d",cd);
+    // 2) si le noeud actuel ne contient pas le point que l'on veut supprimer
     if(cd==0){
         
         if (nodeS->p->x < ActualNode->p->x){
@@ -194,7 +188,7 @@ KdNode* KdTree::_supprimerNoeud(KdNode* ActualNode,KdNode* nodeS){
     return ActualNode;
 }
 
-KdNode* KdTree::_bestNodeToReplace(KdNode* node,int dim){ // dim 0 ou 1
+KdNode* KdTree::_bestNodeToReplace(KdNode* node,int dim){ // dim x ou y
     if(node == nullptr){
         return nullptr;
     } else {
