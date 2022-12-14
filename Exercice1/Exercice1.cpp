@@ -6,6 +6,7 @@ using namespace std;
 
 int main()
 {
+    // la compilation entraine des warning mais le code marche 
     KdTree* tree = new KdTree();
     // Création des points 
     Point* point1 = new Point("A",52,17);
@@ -51,7 +52,7 @@ int main()
     tree->supprimerNoeud(tree->getNode(point2));
     tree->afficherArbre();
     printf("------------------------\n");
-    Point* point13 = new Point("M",22,70);
+    Point* point13 = new Point("M",40,70);
     KdNode* node = tree->plusProcheVoisin(point13);
     //printf("Point %d",node->p->x);
     
