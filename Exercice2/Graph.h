@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <deque>
 #include <numeric>
+#include <limits>
+#include <iomanip>
 
 #include "GraphElem.h"
 
@@ -341,7 +343,9 @@ void Graph::applyAlgorithm() {
     int res;
 
     cout << "Choisir un algorithme" << endl;
-    cout << "Note : la strategie par page nest pas compatible avec Indegree" << endl;
+    cout << "Note" << endl;
+    cout << "\t- Indegree nest pas compatible avec le regroupement par page" << endl;
+    cout << "\t- PageRank evalue les pages, peu importe la stratégie choisie" << endl << endl;
 
     cout << "1: Indegree   2: PageRank" << endl;
 
@@ -494,7 +498,6 @@ void Graph::PageRank() {
         }
         
     }
-        
 
     // map a bloc and it's rank
     map<Bloc *, double> blocRank;
@@ -534,10 +537,11 @@ void Graph::PageRank() {
                 sum_rank_outlink += (double)blocRank[it->second] / outlinks[it->second];
 
             // update the rank of page v
-            rank[v->getId()] = ((double)d / (N + (1 - d))) * (sum_rank_outlink + sum_noOutlink_nbBlocs);
+            rank[v->getId()] = (double)(d / N) + ((double)((1 - d) * (sum_rank_outlink + sum_noOutlink_nbBlocs)));
         }
         n--;
     }
+
     vector<pair<int, double>> pairs;
     for (auto itr = rank.begin(); itr != rank.end(); ++itr)
         pairs.push_back(*itr);
@@ -546,7 +550,8 @@ void Graph::PageRank() {
              return a.second < b.second;
          }
     );
-
+    
+    // La precision de l'affichage a du etre modifie afin de ne pas s'encomnbrer avec des exposants
     for (auto page: pairs)
-        cout << "Page " << page.first << " has a score of " << page.second << endl;
+        cout << "Page " << page.first << " has a score of " << std::setprecision(10) << std::fixed << page.second << endl;
 }
