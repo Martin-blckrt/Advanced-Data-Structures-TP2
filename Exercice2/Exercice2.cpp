@@ -50,6 +50,9 @@ pair<string, GroupStrategy> getInput() {
 	}
 
 	cout << "Choisir une strategie de regroupement" << endl;
+	cout << "  - Indegree nest pas compatible avec le regroupement par page" << endl;
+	cout << "  - Choisir regroupement par page si on compte utiliser PageRank" << endl << endl;
+
 	cout << "1: Page   2: Domaine   3: Hote" << endl;
 
 	while (!(cin >> res) || (res != 1 && res != 2 && res != 3)) {

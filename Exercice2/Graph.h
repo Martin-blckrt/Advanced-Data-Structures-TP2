@@ -298,6 +298,7 @@ void Graph::balanceGraph() {
     map<Bloc *, vector<HyperEdge *>> hit_list;
     map<Bloc *, vector<HyperEdge *>> orphans;
 
+    // Compte les hyperedges pointant au même endroit à partir de la même source
     for (int i = 0; i < hyperedges.size(); i++) {
         auto curr_src = hyperedges[i]->getSource();
 
@@ -313,6 +314,7 @@ void Graph::balanceGraph() {
 
     vector<HyperEdge *> result;
 
+    // mets à jour les poids et supprime les doublons
     for (auto hit: hit_list) {
         auto elem = hit.second.back();
         size_t vec_size = hit.second.size();
@@ -343,9 +345,7 @@ void Graph::applyAlgorithm() {
     int res;
 
     cout << "Choisir un algorithme" << endl;
-    cout << "Note" << endl;
-    cout << "\t- Indegree nest pas compatible avec le regroupement par page" << endl;
-    cout << "\t- PageRank evalue les pages, peu importe la stratégie choisie" << endl << endl;
+    cout << "PageRank crée un fichier 'PageRank.txt', assurez vous que le fichier nexiste pas avant de lancer" << endl;
 
     cout << "1: Indegree   2: PageRank" << endl;
 
@@ -440,9 +440,6 @@ void Graph::Indegree()
 
 void Graph::PageRank() {
 
-    // used this : https://swang21.medium.com/what-is-googles-pagerank-algorithm-d0ac17cbc167
-    // tweaked it to use blocs and hyperedges
-
     // number of iterations
     int n = 3;
 
@@ -467,9 +464,10 @@ void Graph::PageRank() {
 
     // update it
     for (auto edge: hyperedges)
-        outlinks[edge->getSource()] += 1;
+        if (outlinks.count(edge->getSource()) > 0)
+            outlinks[edge->getSource()] += 1;
 
-    // make multi-map that links blocs to pages, see 1st way down below
+    // make multi-map that links blocs to pages
     multimap<int, Bloc *> hyperMap;
     map<int, vector<Bloc*>> hitmap;
 
@@ -515,6 +513,7 @@ void Graph::PageRank() {
 
         // sum of no outlink/nb_blocs for a page v
         double sum_noOutlink_nbBlocs = 0.0;
+
         // get all blocs without outlinks and update the no outlink/nb_blocs sum
         for (auto b: outlinks)
             if (b.second == 0)
@@ -527,11 +526,11 @@ void Graph::PageRank() {
             double sum_rank_outlink = 0.0;
 
             // We now need to get each bloc pointing to page v
-            // 1st WAY
             // with the hypermap (initialized at the beginning), get all Blocs* linked to the key V.getId() (= the page)
 
             typedef multimap<int, Bloc*>::iterator MMAPIterator;
             pair<MMAPIterator, MMAPIterator> result = hyperMap.equal_range(v->getId());
+
             // iterate over the range
             for (MMAPIterator it = result.first; it != result.second; it++)
                 sum_rank_outlink += (double)blocRank[it->second] / outlinks[it->second];
@@ -546,12 +545,18 @@ void Graph::PageRank() {
     for (auto itr = rank.begin(); itr != rank.end(); ++itr)
         pairs.push_back(*itr);
 
-    sort(pairs.begin(), pairs.end(), [=](std::pair<int, double> &a, std::pair<int, double> &b) {
+    std::sort(pairs.begin(), pairs.end(), [=](std::pair<int, double> &a, std::pair<int, double> &b) {
              return a.second < b.second;
          }
     );
     
-    // La precision de l'affichage a du etre modifie afin de ne pas s'encomnbrer avec des exposants
-    for (auto page: pairs)
-        cout << "Page " << page.first << " has a score of " << std::setprecision(10) << std::fixed << page.second << endl;
+    fstream resultfile;
+    resultfile.open("PageRank.txt", ios_base::out);
+
+    for (int i = 0; i < pairs.size(); i++)
+        resultfile << "Page " << pairs[i].first << " has a score of " << std::setprecision(10) << std::fixed << pairs[i].second << endl;
+ 
+    resultfile.close();
+
+    cout << "Results added in PageRank.txt file" << endl;
 }
