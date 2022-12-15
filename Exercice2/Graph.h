@@ -174,6 +174,7 @@ void Graph::readNodeFileContent(ifstream &file, map<int, vector<int>> &adj_map) 
 
     string line;
 
+    // utilise les memes concepts que readEdgeFileContent
     if (file.is_open()) {
 
         while (getline(file, line)) {
@@ -203,6 +204,7 @@ void Graph::createBlocs() {
     regex urlRe("^.*://([^/?:]+)/?.*$");
     int id = 0;
 
+    // creation des blocs selon la strategie choisie
     if (strat == GroupStrategy::page) {
         blocs.reserve(nodes.size());
 
@@ -417,6 +419,7 @@ void Graph::Indegree()
         cnt++;
     }
 
+    // si presence de cycle, on arrete le programme, Indegree n'est pas faisable
 	if (cnt != blocs.size()) {
 		cout << "Cycle detecte, fin de l algorithme\n";
 		cout << cnt << " visites sur " << blocs.size() << endl;
